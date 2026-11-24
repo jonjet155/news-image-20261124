@@ -271,18 +271,35 @@ def wrap_text(text, fnt, max_w):
 def scene_tanker(cv, x, y, w, h):
     cv.fill_rect(x, y, w, h, SKY)
     cv.circle(x + int(w * 0.78), y + int(h * 0.22), 12, GOLD)
+    # birds
+    for bx, by in ((0.55, 0.14), (0.62, 0.10)):
+        px, py = x + int(w * bx), y + int(h * by)
+        cv.line(px - 6, py, px, py - 4, NAVY, 2)
+        cv.line(px, py - 4, px + 6, py, NAVY, 2)
     cv.fill_rect(x, y + int(h * 0.62), w, h - int(h * 0.62), BLUE)
     # tanker hull
     cv.fill_rect(x + int(w * 0.12), y + int(h * 0.42), int(w * 0.62), int(h * 0.24), RED_DK)
+    # smokestack + smoke (v3.3: ship detail, was a flat silhouette)
+    cv.fill_rect(x + int(w * 0.10), y + int(h * 0.26), int(w * 0.05), int(h * 0.16), NAVY)
+    cv.circle(x + int(w * 0.12), y + int(h * 0.20), 5, GREY)
+    cv.circle(x + int(w * 0.15), y + int(h * 0.14), 4, LIGHT_GREY)
     cv.fill_rect(x + int(w * 0.18), y + int(h * 0.30), int(w * 0.18), int(h * 0.14), NAVY)
-    cv.fill_rect(x + int(w * 0.40), y + int(h * 0.34), int(w * 0.10), int(h * 0.10), WHITE)
-    cv.fill_rect(x + int(w * 0.52), y + int(h * 0.34), int(w * 0.10), int(h * 0.10), WHITE)
+    # coloured containers on deck (v3.3: was two plain white boxes)
+    cv.fill_rect(x + int(w * 0.40), y + int(h * 0.32), int(w * 0.10), int(h * 0.10), GOLD)
+    cv.fill_rect(x + int(w * 0.52), y + int(h * 0.32), int(w * 0.10), int(h * 0.10), TEAL)
+    cv.fill_rect(x + int(w * 0.63), y + int(h * 0.34), int(w * 0.09), int(h * 0.08), ORANGE)
     # second ship far
     cv.fill_rect(x + int(w * 0.76), y + int(h * 0.52), int(w * 0.18), int(h * 0.12), NAVY2)
-    # waves
+    # waves: two rows + foam at the waterline (v3.3). The kicker
+    # strip covers local y 70..86, so the second row sits at 0.70h.
     for i in range(5):
         cv.line(x + i * int(w / 5), y + int(h * 0.78) + (i % 2) * 4,
                 x + (i + 1) * int(w / 5), y + int(h * 0.78) + (i % 2) * 4, WHITE, 2)
+    for i in range(6):
+        xx = x + int(w * (0.05 + i * 0.16))
+        cv.line(xx, y + int(h * 0.70), xx + int(w * 0.08), y + int(h * 0.70), WHITE, 2)
+    for i in range(4):
+        cv.circle(x + int(w * (0.18 + i * 0.16)), y + int(h * 0.64), 2, WHITE)
 
 
 def scene_climate(cv, x, y, w, h):
@@ -304,21 +321,42 @@ def scene_climate(cv, x, y, w, h):
     cv.line(x + int(w * 0.1), y + int(h * 0.88), x + int(w * 0.9), y + int(h * 0.88), BROWN, 3)
 
 
-def scene_market(cv, x, y, w, h):
-    cv.fill_rect(x, y, w, h, (214, 232, 214))
-    # bars
-    base = y + int(h * 0.82)
-    vals = [0.25, 0.4, 0.32, 0.55, 0.48, 0.72, 0.95]
-    bw = int(w / (len(vals) + 1))
-    for i, v in enumerate(vals):
-        bh = int(h * 0.7 * v)
-        col = GREEN if i == len(vals) - 1 else TEAL
-        cv.fill_rect(x + int(w * 0.08) + i * bw, base - bh, int(bw * 0.6), bh, col)
-    # arrow up
-    cv.line(x + int(w * 0.08), y + int(h * 0.62), x + int(w * 0.9), y + int(h * 0.14), RED, 3)
-    cv.triangle([(x + int(w * 0.9), y + int(h * 0.14)),
-                 (x + int(w * 0.78), y + int(h * 0.14)),
-                 (x + int(w * 0.9), y + int(h * 0.30))], RED)
+def scene_nvidia(cv, x, y, w, h):
+    # v3.3: NVIDIA chip/AI motif (was generic bars + trend line, which
+    # said nothing about NVIDIA). Green chip with pins and circuit
+    # traces left, rising arrow right. Art rect is w x h (328x86 in
+    # heroes); the kicker strip covers local y 70..86, so all art
+    # stays above local y 70.
+    cv.fill_rect(x, y, w, h, (206, 230, 206))
+    cx, cy = x + int(w * 0.38), y + int(h * 0.48)
+    # circuit traces from the left edge to the chip, with node dots
+    for ty in (0.22, 0.38, 0.62, 0.78):
+        yy = y + int(h * ty)
+        cv.line(x + int(w * 0.06), yy, cx - 40, yy, TEAL, 2)
+        cv.circle(x + int(w * 0.06), yy, 3, TEAL)
+        cv.circle(cx - 40, yy, 2, TEAL)
+    # chip body + inner die
+    cv.fill_rect(cx - 34, cy - 24, 68, 48, (24, 96, 54))
+    cv.fill_rect(cx - 24, cy - 14, 48, 28, (46, 140, 80))
+    # chip pins: top/bottom rows and left/right columns
+    for i in range(4):
+        px = cx - 24 + i * 16
+        cv.fill_rect(px, cy - 30, 6, 6, (24, 96, 54))
+        cv.fill_rect(px, cy + 24, 6, 6, (24, 96, 54))
+    for i in range(3):
+        py = cy - 12 + i * 12
+        cv.fill_rect(cx - 40, py, 6, 6, (24, 96, 54))
+        cv.fill_rect(cx + 34, py, 6, 6, (24, 96, 54))
+    draw_text_c(cv, cx, cy, "AI", F(SANS_B, 20), WHITE)
+    # rising arrow, right side
+    ax0, ay0 = x + int(w * 0.68), y + int(h * 0.80)
+    ax1, ay1 = x + int(w * 0.94), y + int(h * 0.16)
+    cv.line(ax0, ay0, ax1, ay1, GREEN, 4)
+    cv.triangle([(ax1, ay1), (ax1 - 14, ay1 + 2), (ax1 - 2, ay1 + 14)], GREEN)
+    # small momentum bars under the arrow
+    bx = x + int(w * 0.68)
+    for i, bh in enumerate((8, 14, 20)):
+        cv.fill_rect(bx + i * 12, y + int(h * 0.80) - bh, 8, bh, TEAL)
 
 
 def scene_radar(cv, x, y, w, h):
@@ -473,7 +511,7 @@ def scene_kyiv(cv, x, y, w, h):
 
 
 SCENES = {
-    'tanker': scene_tanker, 'climate': scene_climate, 'market': scene_market,
+    'tanker': scene_tanker, 'climate': scene_climate, 'nvidia': scene_nvidia,
     'radar': scene_radar, 'ship': scene_ship, 'fire': scene_fire,
     'gaza': scene_gaza, 'plane': scene_plane, 'eu': scene_eu,
     'iowa': scene_iowa, 'bank': scene_bank, 'anthropic': scene_anthropic,
@@ -514,8 +552,14 @@ CONTINENTS = {
     'IDN_SUMATRA': [(95, 5.5), (98, 3.5), (101, 0.5), (103, -1.5),
                     (105, -3.5), (106, -5), (104, -5.5), (102, -3),
                     (100, -0.5), (97, 2), (95, 4.5)],
-    'IDN_JAVA': [(104, -4.5), (108, -5), (112, -5.5), (114, -6),
-                 (114, -9.5), (110, -9.5), (106, -9), (104, -7)],
+    # v3.3: Java enlarged (was a 7px sliver hidden behind the r=9 pin,
+    # so the pin read as floating in the Indian Ocean): now ~21px wide
+    # x ~17px tall, pin centre 5+px inside every edge, land visible
+    # on both sides of the pin. Sunda Strait stays a ~2px gap to
+    # Sumatra's tip (the strait itself is sub-pixel at this scale).
+    'IDN_JAVA': [(99, -2.5), (104, -3), (108, -3.5), (112, -4),
+                 (116, -4.5), (116, -11), (112, -14),
+                 (107, -14), (102, -13.5), (99, -9)],
     'AUS': [(113, -22), (114, -30), (115, -35), (120, -34), (125, -32),
             (130, -32), (135, -35), (140, -38), (145, -38), (150, -37),
             (153, -32), (153, -27), (150, -22), (146, -19), (142, -11),
@@ -527,20 +571,26 @@ CONTINENTS = {
 # onto mainland; pins 3/12 declustered further; pin 1 nudged north so
 # pins 1-7 clear 18px; every pin centre on rendered land (point-in-
 # polygon + pixel check).
+# v3.3 (blind R4 fixes, all verified by crop): pin 3 was in Canada
+# (dy -22) while pin 12 was also New York -> pin 3 back to true NYC
+# (east coast, on land); pin 12 -> San Francisco (Anthropic HQ, on
+# land, 19px from pin 11); pin 8 back east onto Korea's east coast
+# (was in Manchuria after the v3.2 dx -14); pin 6 nudged +1px east so
+# its centre sits 4px inside the enlarged Java polygon.
 PINS = [
     (1, 51.4, 35.7, 5, -6),     # Tehran
     (2, 30.7, 36.9, -2, -4),    # Antalya
-    (3, -74.0, 40.7, 0, -22),   # New York (declustered north, Canada)
+    (3, -74.0, 40.7, -2, 0),    # New York (v3.3: true NYC, east coast)
     (4, 21.0, 52.2, -6, 6),     # Warsaw (declustered SW, C. Europe)
     (5, 30.5, 50.45, 2, -2),    # Kyiv (v3.2: was Benghazi; EUR polygon
                                  # extended east so Kyiv is on land)
-    (6, 106.8, -6.2, 0, 1),     # Jakarta (on new Java island polygon)
+    (6, 106.8, -6.2, 1, 1),     # Jakarta (v3.3: enlarged Java polygon)
     (7, 34.5, 31.5, 8, 0),      # Gaza
-    (8, 130.9, 37.5, -14, -4),  # Ulleung (v3.2: west onto mainland)
+    (8, 130.9, 37.5, 2, 2),     # Ulleung (v3.3: Korea east coast)
     (9, 4.35, 50.85, -8, 8),    # Brussels (declustered SW, France)
     (10, -93.1, 41.9, -4, -10), # Iowa
     (11, -77.0, 38.9, -32, 6),  # Washington (declustered W, New Mexico)
-    (12, -74.0, 40.7, -14, 10), # New York (Anthropic; SW, Alabama)
+    (12, -122.4, 37.8, 3, -2),  # San Francisco (v3.3: Anthropic HQ)
     (13, -17.4, 14.7, 12, 0),   # Dakar
 ]
 
@@ -560,7 +610,7 @@ HEROES = [
          headline='COP31 ENDS WITH NO DEAL',
          deck='FIRST NO-DEAL COP SINCE 2009; PACIFIC IN DESPAIR',
          source='BBC • CNN • GUARDIAN', tag='C'),
-    dict(num='03', city='NEW YORK', region='AMERICAS', scene='market',
+    dict(num='03', city='NEW YORK', region='AMERICAS', scene='nvidia',
          headline='HUANG BACK AT NVIDIA',
          deck='CEO REINSTATED IN TRUMP DEAL; SHARES SURGE',
          source='REUTERS • BLOOMBERG', tag='R'),
@@ -584,16 +634,16 @@ SMALL = [
          deck='WARNING LIFTED AFTER 3 MINUTES; RUSSIAN JETS IN AIRSPACE', source='REUTERS', tag='C'),
     dict(num='09', city='BRUSSELS', scene='eu',
          headline='EU PROPOSES NEW RUSSIA CURBS',
-         deck='ATHLETE BAN IN 22ND PACKAGE; BANKS, CRYPTO HIT', source='REUTERS', tag='O'),
+         deck='RUSSIAN ATHLETES BANNED; BANKS, CRYPTO HIT', source='REUTERS', tag='O'),
     dict(num='10', city='IOWA', scene='iowa',
-         headline='TRUMP PAUSES IOWA BLAST',
+         headline='IOWA BLAST CLEANUP PAUSED',
          deck='TOXIC LEAD AZIDE STAYS PUT PENDING COURT RULING', source='REUTERS', tag='C'),
     dict(num='11', city='WASHINGTON', scene='bank',
          headline='US HITS IRAN SHADOW BANKS',
          deck='$15BN IN FLOWS FLAGGED; DOZENS SANCTIONED', source='US TREASURY', tag='C'),
-    dict(num='12', city='NEW YORK', scene='anthropic',
+    dict(num='12', city='SAN FRANCISCO', scene='anthropic',
          headline='ANTHROPIC OPTIONS DEBUT',
-         deck='BRISK VOLUME; SHARES SLIP; ETFS START TRADING', source='REUTERS', tag='R'),
+         deck='OPTIONS DEBUT; BRISK VOLUME, TRAILS SPACEX RECORD', source='REUTERS', tag='R'),
     dict(num='13', city='DAKAR', scene='football',
          headline='CAS TO RULE ON AFCON TITLE',
          deck='SENEGAL APPEALS MOROCCO WIN; RULING TODAY', source='REUTERS', tag='F'),
@@ -602,7 +652,7 @@ SMALL = [
 ALSO_ON = [
     "SINGER AHMADI GETS 74 LASHES (REUTERS)",
     "GERMANY TO USE KYIV DELTA WAR TOOL (REUTERS)",
-    "UKRAINE SINKS RUSSIAN SHIP IN BENGHAZI (REUTERS)",
+    "UKRAINE SINKS SHIP IN BENGHAZI, LIBYA (REUTERS)",
     "RUSSIAN DRONE ENTERS POLISH AIRSPACE (REUTERS)",
     "N. KOREA MAY SHUT SWISS OFFICE (KCNA)",
     "MURMANSK GOVERNOR HELD IN GRAFT CASE (REUTERS)",
@@ -610,7 +660,7 @@ ALSO_ON = [
     "MEXICO NABS 'EL CHAPO ISIDRO' (REUTERS)",
     "US MAY TRAIN SYRIAN TROOPS (REUTERS)",
     "MOSCOW WARNS ESTONIA OF 'OPEN WAR' (REUTERS)",
-    "TRUMP BLASTS NEWSOM: 548 COMMUTES (REUTERS)",
+    "NEWSOM'S 548 DEATH-ROW COMMUTES (REUTERS)",
     "WFP: WARS HIT FOOD AID FOR 7.3M (REUTERS)",
     "HIT CARGO SHIP SPARTA II DOCKS SAFE (REUTERS)",
     "MELENCHON GAINS IN FRENCH POLL (REUTERS)",
@@ -629,7 +679,7 @@ TIMELINE = [
     ("02:00", "INDONESIA: SEARCH FOR 34 MISSING"),
     ("06:00", "NATO TO SEND AWACS TO POLAND"),
     ("09:00", "EU UNVEILS 22ND SANCTIONS PACKAGE"),
-    ("14:00", "TRUMP PAUSES IOWA BLAST"),
+    ("14:00", "IOWA BLAST CLEANUP PAUSED"),
 ]
 
 NUMBERS = [
@@ -740,7 +790,8 @@ def build():
         draw_text(cv, x + 8, y + 174, hero['source'], F(SANS, 10), GREY)
 
     # ---- 10 small panels, 2 rows of 5 (y 436 / 562, h 120; v3.2: art
-    # 30->20, decks extended to 2 lines, legend fits below row 2) ----
+    # 30->20, decks extended to 2 lines, legend fits below row 2;
+    # v3.3: headline 15->16pt, deck 11->12pt for 300px legibility) ----
     pw, gap = 196, 7
     for row in range(2):
         for col_i in range(5):
@@ -752,16 +803,16 @@ def build():
             draw_chip(cv, x + pw - 18, y + 3, p['tag'])
             draw_text(cv, x + 6, y + 23, '%s \u2022 %s' % (p['num'], p['city']),
                       F(SANS_B, 12), NAVY)
-            hlines = wrap_text(title_case(p['headline']), F(SANS_B, 15), pw - 12)
+            hlines = wrap_text(title_case(p['headline']), F(SANS_B, 16), pw - 12)
             assert len(hlines) <= 2, ('headline', p['headline'], hlines)
             for j, ln in enumerate(hlines[:2]):
-                draw_text(cv, x + 6, y + 39 + j * 18, ln, F(SANS_B, 15), INK)
-            dlines = wrap_text(sentence_case(p['deck']), F(SANS, 11), pw - 12)
+                draw_text(cv, x + 6, y + 39 + j * 19, ln, F(SANS_B, 16), INK)
+            dlines = wrap_text(sentence_case(p['deck']), F(SANS, 12), pw - 12)
             assert len(dlines) <= 2, ('deck', p['deck'], dlines)
             for j, ln in enumerate(dlines[:2]):
-                draw_text(cv, x + 6, y + 75 + j * 13, ln, F(SANS, 11), INK)
-            # source (y+103: ink bottom ~116, border row 119 -> 3px margin)
-            draw_text(cv, x + 6, y + 103, p['source'], F(SANS, 10), GREY)
+                draw_text(cv, x + 6, y + 76 + j * 14, ln, F(SANS, 12), INK)
+            # source (y+104: ink bottom ~115, border row 119 -> 4px margin)
+            draw_text(cv, x + 6, y + 104, p['source'], F(SANS, 10), GREY)
 
     # ---- veracity legend 686 + map + ALSO ON 684..950 ----
     cv.fill_rect(0, 684, W, 266, CREAM)
@@ -840,7 +891,7 @@ def build():
               'Every story here was reported on Tue 24 Nov 2026 in at least one time zone.',
               F(SANS, 10), INK, align='c')
     draw_text(cv, W / 2, 1012,
-              'Sources: Reuters, AP, BBC, CNN, Guardian, AFP, Space.com \u2022 Original drawings.',
+              'Sources: Reuters, Euronews, Fox News, BBC, CNN, Guardian, Bloomberg, KCNA, Space.com, US Treasury \u2022 Original drawings.',
               F(SANS, 10), GREY, align='c')
     return cv
 
