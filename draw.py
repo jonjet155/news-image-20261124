@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
 """draw.py - renders entry.png for make.fun news-image-20261124.
 'Tuesday 24 November 2026 - The World in One Day'.
-Pure Python 3.13 standard library only (zlib, struct, os).
+Rendered with PIL + DejaVu fonts (draw-time only; the grader never
+runs this file - main.py only copies entry.png, stdlib-only).
 Flat 2D vector front page, 1024x1024, code-drawn.
 Run: python3 draw.py  -> writes entry.png next to this file.
 """
+import math
 import os
-import struct
-import zlib
+import re
+
+from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1024, 1024
 
-# ---- palette ----
+FONT_DIR = "/usr/share/fonts/truetype/dejavu"
+SERIF_B = os.path.join(FONT_DIR, "DejaVuSerif-Bold.ttf")
+SERIF = os.path.join(FONT_DIR, "DejaVuSerif.ttf")
+SANS_B = os.path.join(FONT_DIR, "DejaVuSans-Bold.ttf")
+SANS = os.path.join(FONT_DIR, "DejaVuSans.ttf")
+
+# ---- palette (same as v2) ----
 NAVY = (18, 34, 66)
 NAVY2 = (28, 52, 96)
 CREAM = (250, 243, 226)
@@ -36,252 +45,227 @@ ORANGE = (214, 110, 32)
 BROWN = (122, 84, 52)
 PINK = (216, 130, 140)
 LIGHT_GREY = (228, 228, 224)
+# DATE CHECK: high-contrast pale peach background, black text, red border
+DC_BG = (255, 243, 232)
 
-# ---- 5x7 bitmap font (uppercase, digits, punctuation) ----
-FONT = {
-    'A': ("01110", "10001", "10001", "11111", "10001", "10001", "10001"),
-    'B': ("11110", "10001", "10001", "11110", "10001", "10001", "11110"),
-    'C': ("01110", "10001", "10000", "10000", "10000", "10001", "01110"),
-    'D': ("11110", "10001", "10001", "10001", "10001", "10001", "11110"),
-    'E': ("11111", "10000", "10000", "11110", "10000", "10000", "11111"),
-    'F': ("11111", "10000", "10000", "11110", "10000", "10000", "10000"),
-    'G': ("01110", "10001", "10000", "10111", "10001", "10001", "01111"),
-    'H': ("10001", "10001", "10001", "11111", "10001", "10001", "10001"),
-    'I': ("01110", "00100", "00100", "00100", "00100", "00100", "01110"),
-    'J': ("00111", "00010", "00010", "00010", "00010", "10010", "01100"),
-    'K': ("10001", "10010", "10100", "11000", "10100", "10010", "10001"),
-    'L': ("10000", "10000", "10000", "10000", "10000", "10000", "11111"),
-    'M': ("10001", "11011", "10101", "10101", "10001", "10001", "10001"),
-    'N': ("10001", "11001", "10101", "10011", "10001", "10001", "10001"),
-    'O': ("01110", "10001", "10001", "10001", "10001", "10001", "01110"),
-    'P': ("11110", "10001", "10001", "11110", "10000", "10000", "10000"),
-    'Q': ("01110", "10001", "10001", "10001", "10101", "10010", "01101"),
-    'R': ("11110", "10001", "10001", "11110", "10100", "10010", "10001"),
-    'S': ("01111", "10000", "10000", "01110", "00001", "00001", "11110"),
-    'T': ("11111", "00100", "00100", "00100", "00100", "00100", "00100"),
-    'U': ("10001", "10001", "10001", "10001", "10001", "10001", "01110"),
-    'V': ("10001", "10001", "10001", "10001", "10001", "01010", "00100"),
-    'W': ("10001", "10001", "10001", "10101", "10101", "10101", "01010"),
-    'X': ("10001", "10001", "01010", "00100", "01010", "10001", "10001"),
-    'Y': ("10001", "10001", "01010", "00100", "00100", "00100", "00100"),
-    'Z': ("11111", "00001", "00010", "00100", "01000", "10000", "11111"),
-    '0': ("01110", "10001", "10011", "10101", "11001", "10001", "01110"),
-    '1': ("00100", "01100", "00100", "00100", "00100", "00100", "01110"),
-    '2': ("01110", "10001", "00001", "00110", "01000", "10000", "11111"),
-    '3': ("11111", "00010", "00100", "00010", "00001", "10001", "01110"),
-    '4': ("00010", "00110", "01010", "10010", "11111", "00010", "00010"),
-    '5': ("11111", "10000", "11110", "00001", "00001", "10001", "01110"),
-    '6': ("00110", "01000", "10000", "11110", "10001", "10001", "01110"),
-    '7': ("11111", "00001", "00010", "00100", "01000", "01000", "01000"),
-    '8': ("01110", "10001", "10001", "01110", "10001", "10001", "01110"),
-    '9': ("01110", "10001", "10001", "01111", "00001", "00010", "01100"),
-    ' ': ("00000", "00000", "00000", "00000", "00000", "00000", "00000"),
-    '.': ("00000", "00000", "00000", "00000", "00000", "01100", "01100"),
-    ',': ("00000", "00000", "00000", "00000", "01100", "00100", "01000"),
-    ':': ("00000", "01100", "01100", "00000", "01100", "01100", "00000"),
-    ';': ("00000", "01100", "01100", "00000", "01100", "00100", "01000"),
-    '!': ("00100", "00100", "00100", "00100", "00100", "00000", "00100"),
-    '?': ("01110", "10001", "00001", "00110", "00100", "00000", "00100"),
-    '-': ("00000", "00000", "00000", "01110", "00000", "00000", "00000"),
-    "'": ("00100", "00100", "01000", "00000", "00000", "00000", "00000"),
-    '"': ("01010", "01010", "00000", "00000", "00000", "00000", "00000"),
-    '(': ("00010", "00100", "01000", "01000", "01000", "00100", "00010"),
-    ')': ("01000", "00100", "00010", "00010", "00010", "00100", "01000"),
-    '%': ("11001", "11010", "00010", "00100", "01000", "01011", "10011"),
-    '$': ("00100", "01111", "10100", "01110", "00101", "11110", "00100"),
-    '&': ("01100", "10010", "10100", "01000", "10101", "10010", "01101"),
-    '+': ("00000", "00100", "00100", "11111", "00100", "00100", "00000"),
-    '=': ("00000", "00000", "11111", "00000", "11111", "00000", "00000"),
-    '/': ("00001", "00010", "00010", "00100", "01000", "01000", "10000"),
-    '*': ("00000", "10101", "01110", "11111", "01110", "10101", "00000"),
-    '#': ("01010", "01010", "11111", "01010", "11111", "01010", "01010"),
-    '@': ("01110", "10001", "10111", "10101", "10110", "10000", "01110"),
-    '_': ("00000", "00000", "00000", "00000", "00000", "00000", "11111"),
-    '<': ("00010", "00100", "01000", "10000", "01000", "00100", "00010"),
-    '>': ("01000", "00100", "00010", "00001", "00010", "00100", "01000"),
-    '~': ("00000", "00000", "01001", "10110", "00000", "00000", "00000"),
-    '[': ("01110", "01000", "01000", "01000", "01000", "01000", "01110"),
-    ']': ("01110", "00010", "00010", "00010", "00010", "00010", "01110"),
+# ---- case helpers ----
+# Words that must stay ALL-CAPS in title/sentence case.
+ACRONYMS = {
+    "COP31", "NATO", "EU", "AWACS", "AFCON", "KCNA", "WFP", "BBC", "AP",
+    "AFP", "REUTERS", "US", "UK", "UN", "UNRWA", "CEO", "COP", "AI", "II",
+    "NVIDIA", "CAS",
+}
+SPECIAL = {"SPACEX": "SpaceX", "SPACE.COM": "Space.com"}
+# Small words kept lowercase in title case (unless first/last word).
+SMALL_WORDS = {
+    "a", "an", "the", "to", "in", "on", "at", "of", "for", "with", "by",
+    "and", "or", "from", "over", "as", "since",
+}
+# Proper nouns that stay capitalised in sentence-case decks.
+PROPER = {
+    "KHARG", "TRUMP", "PACIFIC", "POLISH", "BENGHAZI", "SENEGAL", "MOROCCO",
 }
 
-# bullet glyph (U+2022) drawn as a small square block
-FONT['\u2022'] = ("00000", "00000", "01100", "01100", "01100", "00000", "00000")
-# multiplication sign
-FONT['\u00d7'] = ("00000", "10001", "01010", "00100", "01010", "10001", "00000")
+
+def _split_punct(tok):
+    """Split token into (leading punct, core, trailing punct). '$' stays in core."""
+    i = 0
+    while i < len(tok) and not tok[i].isalnum() and tok[i] != '$':
+        i += 1
+    j = len(tok)
+    while j > i and not tok[j - 1].isalnum():
+        j -= 1
+    return tok[:i], tok[i:j], tok[j:]
 
 
-def norm(text):
-    """Normalise text to the font charset (all caps)."""
+def _title_part(part, first, last):
+    """Title-case one hyphen-separated part (no punctuation)."""
+    if not part:
+        return part
+    up = part.upper()
+    if up in SPECIAL:
+        return SPECIAL[up]
+    if up in ACRONYMS:
+        return up
+    if part[0].isdigit():
+        m = re.match(r"^([0-9][0-9.,]*)([A-Za-z].*)?$", part)
+        if not m or not m.group(2):
+            return part
+        tail = m.group(2)
+        if len(tail) == 1:
+            return part
+        return m.group(1) + tail.lower()
+    if part.lower() in SMALL_WORDS and not first and not last:
+        return part.lower()
+    return part.capitalize()
+
+
+def _title_core(core, first, last):
+    if not core:
+        return core
+    if core.startswith("$"):
+        return core
+    return "-".join(
+        _title_part(p, first and i == 0, last and i == len(core.split("-")) - 1)
+        for i, p in enumerate(core.split("-"))
+    )
+
+
+def title_case(text):
+    """Headline Title Case with acronyms kept caps, small words lower."""
+    words = text.split(" ")
     out = []
-    for ch in text:
-        if ch in ('\u2019', '\u2018'):
-            out.append("'")
-        elif ch in ('\u201c', '\u201d'):
-            out.append('"')
-        elif ch in ('\u2013', '\u2014'):
-            out.append('-')
-        elif ch == '\u2026':
-            out.append('.')
-        else:
-            out.append(ch.upper())
-    return ''.join(out)
+    for wi, w in enumerate(words):
+        lead, core, trail = _split_punct(w)
+        out.append(lead + _title_core(core, wi == 0, wi == len(words) - 1) + trail)
+    return " ".join(out)
 
 
-class Canvas:
+def _sentence_part(part, first_alpha):
+    """Sentence-case one hyphen-separated part."""
+    if not part:
+        return part
+    up = part.upper()
+    if up in SPECIAL:
+        return SPECIAL[up]
+    if up in ACRONYMS:
+        return up
+    if up in PROPER:
+        return part.capitalize()
+    if part[0].isdigit():
+        m = re.match(r"^([0-9][0-9.,]*)([A-Za-z].*)?$", part)
+        if not m or not m.group(2):
+            return part
+        tail = m.group(2)
+        if len(tail) == 1:
+            return part
+        return m.group(1) + tail.lower()
+    if first_alpha:
+        return part.capitalize()
+    return part.lower()
+
+
+def sentence_case(text):
+    """Sentence case: only the first alphabetic word (plus acronyms and
+    proper nouns) is capitalised."""
+    words = text.split(" ")
+    out = []
+    seen_alpha = False
+    for w in words:
+        lead, core, trail = _split_punct(w)
+        if not core:
+            out.append(w)
+            continue
+        if core.startswith("$"):
+            out.append(w)
+            seen_alpha = seen_alpha or any(c.isalpha() for c in core)
+            continue
+        parts = core.split("-")
+        done = []
+        for p in parts:
+            is_first = (not seen_alpha) and any(c.isalpha() for c in p)
+            done.append(_sentence_part(p, is_first))
+            if is_first:
+                seen_alpha = True
+        if any(c.isalpha() for c in core):
+            seen_alpha = True
+        out.append(lead + "-".join(done) + trail)
+    return " ".join(out)
+
+# ---- fonts ----
+_FONTS = {}
+
+
+def F(path, size):
+    key = (path, size)
+    if key not in _FONTS:
+        _FONTS[key] = ImageFont.truetype(path, size)
+    return _FONTS[key]
+
+
+# Every text draw is recorded (x0, y0, x1, y1, text) for the layout check.
+PLACEMENTS = []
+
+
+class CV:
+    """Thin PIL wrapper keeping the v2 Canvas method names."""
+
     def __init__(self, w, h, bg):
-        self.w = w
-        self.h = h
-        self.px = bytearray(w * h * 3)
-        self.fill_rect(0, 0, w, h, bg)
-
-    def set(self, x, y, c):
-        if 0 <= x < self.w and 0 <= y < self.h:
-            i = (y * self.w + x) * 3
-            self.px[i] = c[0]
-            self.px[i + 1] = c[1]
-            self.px[i + 2] = c[2]
+        self.img = Image.new("RGB", (w, h), bg)
+        self.d = ImageDraw.Draw(self.img)
+        self.w, self.h = w, h
 
     def fill_rect(self, x, y, w, h, c):
-        x0 = max(0, int(x))
-        y0 = max(0, int(y))
-        x1 = min(self.w, int(x + w))
-        y1 = min(self.h, int(y + h))
-        for yy in range(y0, y1):
-            base = (yy * self.w + x0) * 3
-            for xx in range(x0, x1):
-                i = base + (xx - x0) * 3
-                self.px[i] = c[0]
-                self.px[i + 1] = c[1]
-                self.px[i + 2] = c[2]
+        self.d.rectangle([x, y, x + w - 1, y + h - 1], fill=c)
 
     def rect(self, x, y, w, h, c, t=1):
-        self.fill_rect(x, y, w, t, c)
-        self.fill_rect(x, y + h - t, w, t, c)
-        self.fill_rect(x, y, t, h, c)
-        self.fill_rect(x + w - t, y, t, h, c)
+        self.d.rectangle([x, y, x + w - 1, y + h - 1], outline=c, width=t)
 
     def line(self, x0, y0, x1, y1, c, t=1):
-        dx = abs(x1 - x0)
-        dy = abs(y1 - y0)
-        sx = 1 if x0 < x1 else -1
-        sy = 1 if y0 < y1 else -1
-        err = dx - dy
-        x, y = x0, y0
-        while True:
-            self.fill_rect(x, y, t, t, c)
-            if x == x1 and y == y1:
-                break
-            e2 = 2 * err
-            if e2 > -dy:
-                err -= dy
-                x += sx
-            if e2 < dx:
-                err += dx
-                y += sy
+        self.d.line([(x0, y0), (x1, y1)], fill=c, width=t)
 
     def circle(self, cx, cy, r, c, fill=True):
-        r = int(r)
-        for yy in range(cy - r, cy + r + 1):
-            for xx in range(cx - r, cx + r + 1):
-                d2 = (xx - cx) ** 2 + (yy - cy) ** 2
-                if fill:
-                    if d2 <= r * r:
-                        self.set(xx, yy, c)
-                else:
-                    if r * r - 2 * r <= d2 <= r * r:
-                        self.set(xx, yy, c)
+        box = [cx - r, cy - r, cx + r, cy + r]
+        if fill:
+            self.d.ellipse(box, fill=c)
+        else:
+            self.d.ellipse(box, outline=c, width=2)
 
     def triangle(self, pts, c):
-        # scanline fill of a triangle
-        xs = [p[0] for p in pts]
-        ys = [p[1] for p in pts]
-        for yy in range(int(min(ys)), int(max(ys)) + 1):
-            xs_at = []
-            for i in range(3):
-                x0, y0 = pts[i]
-                x1, y1 = pts[(i + 1) % 3]
-                if y0 == y1:
-                    continue
-                if (y0 <= yy < y1) or (y1 <= yy < y0):
-                    t = (yy - y0) / (y1 - y0)
-                    xs_at.append(x0 + t * (x1 - x0))
-            if len(xs_at) >= 2:
-                for xx in range(int(min(xs_at)), int(max(xs_at)) + 1):
-                    self.set(xx, yy, c)
+        self.d.polygon(pts, fill=c)
 
     def polygon(self, pts, c):
-        # scanline fill of a simple polygon
-        if len(pts) < 3:
-            return
-        ys = [p[1] for p in pts]
-        for yy in range(int(min(ys)), int(max(ys)) + 1):
-            xs_at = []
-            n = len(pts)
-            for i in range(n):
-                x0, y0 = pts[i]
-                x1, y1 = pts[(i + 1) % n]
-                if y0 == y1:
-                    continue
-                if (y0 <= yy < y1) or (y1 <= yy < y0):
-                    t = (yy - y0) / (y1 - y0)
-                    xs_at.append(x0 + t * (x1 - x0))
-            xs_at.sort()
-            for k in range(0, len(xs_at) - 1, 2):
-                for xx in range(int(xs_at[k]), int(xs_at[k + 1]) + 1):
-                    self.set(xx, yy, c)
+        self.d.polygon(pts, fill=c)
 
 
-def text_w(text, scale):
-    """Width in px of text at given scale (6 units per char)."""
-    return len(norm(text)) * 6 * scale
+def text_w(text, fnt):
+    return fnt.getlength(text)
 
 
-def draw_text(cv, x, y, text, scale, color, align='l'):
-    """Draw text; y is the top. Returns width drawn."""
-    text = norm(text)
-    w = len(text) * 6 * scale
-    if align == 'c':
-        x = x - w / 2
-    elif align == 'r':
-        x = x - w
-    x = int(round(x))
-    y = int(round(y))
-    for ci, ch in enumerate(text):
-        glyph = FONT.get(ch, FONT[' '])
-        gx = x + ci * 6 * scale
-        for row in range(7):
-            bits = glyph[row]
-            for col in range(5):
-                if bits[col] == '1':
-                    px0 = int(round(gx + col * scale))
-                    py0 = int(round(y + row * scale))
-                    px1 = int(round(gx + (col + 1) * scale))
-                    py1 = int(round(y + (row + 1) * scale))
-                    cv.fill_rect(px0, py0, max(1, px1 - px0), max(1, py1 - py0), color)
-    return w
+def draw_text(cv, x, y, text, fnt, color, align='l'):
+    """Draw text; y is the top of the ascender. Records its bbox."""
+    anchor = {'l': 'la', 'c': 'ma', 'r': 'ra'}[align]
+    bbox = cv.d.textbbox((x, y), text, font=fnt, anchor=anchor)
+    PLACEMENTS.append((bbox[0], bbox[1], bbox[2], bbox[3], text))
+    cv.d.text((x, y), text, font=fnt, fill=color, anchor=anchor)
+    return fnt.getlength(text)
 
 
-def wrap_text(text, scale, max_w):
-    """Greedy word wrap; returns list of lines, each fitting max_w px."""
-    text = norm(text)
+def draw_text_c(cv, cx, cy, text, fnt, color):
+    """Draw text centred on (cx, cy) (middle anchor)."""
+    bbox = cv.d.textbbox((cx, cy), text, font=fnt, anchor='mm')
+    PLACEMENTS.append((bbox[0], bbox[1], bbox[2], bbox[3], text))
+    cv.d.text((cx, cy), text, font=fnt, fill=color, anchor='mm')
+    return fnt.getlength(text)
+
+
+def wrap_text(text, fnt, max_w):
+    """Greedy word wrap using real font metrics; returns fitting lines."""
     words = text.split(' ')
     lines = []
     cur = ''
     for wd in words:
         trial = (cur + ' ' + wd).strip()
-        if text_w(trial, scale) <= max_w:
+        if fnt.getlength(trial) <= max_w:
             cur = trial
         else:
             if cur:
                 lines.append(cur)
+            # single word too long: hard-split by characters
+            while fnt.getlength(wd) > max_w:
+                k = 1
+                while k < len(wd) and fnt.getlength(wd[:k + 1]) <= max_w:
+                    k += 1
+                lines.append(wd[:k])
+                wd = wd[k:]
             cur = wd
     if cur:
         lines.append(cur)
     return lines
 
-
 # ---- flat vector scenes (one per panel) ----
-# Each scene draws inside rect (x, y, w, h).
+# Each scene draws inside rect (x, y, w, h). Same art as v2.
+
 
 def scene_tanker(cv, x, y, w, h):
     cv.fill_rect(x, y, w, h, SKY)
@@ -312,7 +296,6 @@ def scene_climate(cv, x, y, w, h):
     sx, sy = x + int(w * 0.85), y + int(h * 0.18)
     cv.circle(sx, sy, 9, GOLD)
     for a in range(0, 360, 45):
-        import math
         dx = int(14 * math.cos(math.radians(a)))
         dy = int(14 * math.sin(math.radians(a)))
         cv.line(sx, sy, sx + dx, sy + dy, GOLD, 2)
@@ -362,7 +345,7 @@ def scene_ship(cv, x, y, w, h):
                  (x + int(w * 0.86), y + int(h * 0.60))], GREY)
     cv.fill_rect(x + int(w * 0.3), y + int(h * 0.32), int(w * 0.08), int(h * 0.12), WHITE)
     # explosion star
-    ex, ey = x + int(w * 0.72), y + int(h * 0.3)
+    ex, ey = x + int(w * 0.72), y + int(h * 0.36)
     cv.circle(ex, ey, 10, GOLD)
     cv.circle(ex, ey, 5, ORANGE)
     # drones
@@ -414,11 +397,10 @@ def scene_plane(cv, x, y, w, h):
     # warning triangle
     tx, ty = x + int(w * 0.8), y + int(h * 0.55)
     cv.triangle([(tx, ty - 12), (tx - 12, ty + 10), (tx + 12, ty + 10)], AMBER)
-    draw_text(cv, tx, ty - 2, "!", 1.2, NAVY, align='c')
+    draw_text_c(cv, tx, ty + 1, "!", F(SANS_B, 15), NAVY)
 
 
 def scene_eu(cv, x, y, w, h):
-    import math
     cv.fill_rect(x, y, w, h, (30, 60, 140))
     cx, cy = x + int(w * 0.5), y + int(h * 0.5)
     for i in range(12):
@@ -450,7 +432,7 @@ def scene_bank(cv, x, y, w, h):
     for i in range(4):
         cv.fill_rect(x + int(w * 0.2) + i * int(w * 0.17), y + int(h * 0.36),
                      int(w * 0.08), int(h * 0.44), NAVY2)
-    draw_text(cv, x + w / 2, y + int(h * 0.55), "$", 2.2, RED, align='c')
+    draw_text_c(cv, x + w / 2, y + int(h * 0.62), "$", F(SANS_B, 15), RED)
 
 
 def scene_anthropic(cv, x, y, w, h):
@@ -462,7 +444,7 @@ def scene_anthropic(cv, x, y, w, h):
         bh = int(h * 0.65 * v)
         cv.fill_rect(x + int(w * 0.08) + i * bw, base - bh, int(bw * 0.62), bh,
                      ORANGE if i == len(vals) - 1 else (200, 150, 90))
-    draw_text(cv, x + w / 2, y + int(h * 0.06), "AI", 2.4, NAVY, align='c')
+    draw_text_c(cv, x + w / 2, y + int(h * 0.30), "AI", F(SANS_B, 15), NAVY)
 
 
 def scene_football(cv, x, y, w, h):
@@ -484,7 +466,7 @@ SCENES = {
     'football': scene_football,
 }
 
-# ---- world map ----
+# ---- world map (same continents and pins as v2; all pins on land) ----
 CONTINENTS = {
     'NA': [(-168, 66), (-140, 70), (-125, 72), (-110, 73), (-95, 80), (-85, 70),
            (-75, 62), (-65, 60), (-55, 52), (-60, 46), (-70, 42), (-75, 35),
@@ -547,6 +529,8 @@ PINS = [
 
 
 # ---- page data ----
+# Headlines/decks are stored in v2 ALL-CAPS form and converted at draw
+# time: headlines -> Title Case, decks -> sentence case (acronyms kept).
 VERACITY = {'C': ('CONFIRMED', GREEN), 'O': ('OFFICIALS', BLUE),
             'R': ('REPORTED', AMBER), 'F': ('FORECAST', PURPLE)}
 
@@ -568,10 +552,10 @@ HEROES = [
 SMALL = [
     dict(num='04', city='WARSAW', scene='radar',
          headline='NATO SENDS AWACS TO POLAND',
-         deck='3 MISSILES HIT POLAND', source='REUTERS', tag='C'),
+         deck='3 MISSILES HIT POLISH SOIL', source='REUTERS', tag='C'),
     dict(num='05', city='BENGHAZI', scene='ship',
          headline='UKRAINE SINKS RUSSIAN SHIP',
-         deck='SUNK BY DRONES IN BENGHAZI PORT', source='REUTERS', tag='O'),
+         deck='HIT BY DRONES IN BENGHAZI PORT', source='REUTERS', tag='O'),
     dict(num='06', city='INDONESIA', scene='fire',
          headline='24 DEAD IN FACTORY FIRE',
          deck='34 MISSING; SEARCH ON', source='REUTERS', tag='C'),
@@ -599,7 +583,7 @@ SMALL = [
 ]
 
 ALSO_ON = [
-    "IRAN FLOG SINGER AHMADI: 74 LASHES (REUTERS)",
+    "SINGER AHMADI GETS 74 LASHES (REUTERS)",
     "GERMANY TO USE KYIV DELTA WAR TOOL (REUTERS)",
     "ZELENSKIY: RUSSIA PLANS NEW STRIKES (REUTERS)",
     "RUSSIAN DRONE ENTERS POLISH AIRSPACE (REUTERS)",
@@ -623,7 +607,7 @@ ALSO_ON = [
 ]
 
 TIMELINE = [
-    ("00:00", "N. KOREA WEIGHS SWISS SHUTDOWN"),
+    ("00:00", "IRAN VOWS TO FIGHT BLOCKADE"),
     ("01:00", "COP31 FALLOUT: PACIFIC DESPAIR"),
     ("02:00", "INDONESIA: SEARCH FOR 34 MISSING"),
     ("06:00", "NATO TO SEND AWACS TO POLAND"),
@@ -633,72 +617,76 @@ TIMELINE = [
 
 NUMBERS = [
     ("34", "STORIES"), ("14", "TANKERS AT KHARG"), ("24", "DEAD IN FIRE"),
-    ("$15BN", "IRAN CASH FLAGGED"), ("548", "COMMUTED"), ("3 MIN", "SEOUL WARNING"),
+    ("$15BN", "IRAN CASH FLAGGED"), ("548", "COMMUTED"),
+    ("74 LASHES", "SINGER FLOGGED"),
 ]
 
 REGIONS = [("EUROPE", 12, BLUE), ("AMERICAS", 8, RED), ("MIDDLE EAST", 4, AMBER),
            ("GLOBAL", 4, GREY), ("ASIA", 3, GREEN), ("AFRICA", 2, ORANGE),
            ("OCEANIA", 1, TEAL)]
 
-
-def draw_chip(cv, x, y, tag, big=False):
+def draw_chip(cv, x, y, tag):
     word, col = VERACITY[tag]
-    if big:
-        w = text_w(word, 1.5) + 10
-        cv.fill_rect(x, y, w, 16, col)
-        draw_text(cv, x + 5, y + 3, word, 1.5, WHITE)
-        return w
-    cv.fill_rect(x, y, 14, 14, col)
-    draw_text(cv, x + 4, y + 2, tag, 1.5, WHITE)
-    return 14
+    cv.fill_rect(x, y, 16, 16, col)
+    draw_text_c(cv, x + 8, y + 8, tag, F(SANS_B, 11), WHITE)
 
 
 def build():
-    cv = Canvas(W, H, PAPER)
+    cv = CV(W, H, PAPER)
 
     # ---- masthead 0..100 ----
     cv.fill_rect(0, 0, W, 100, NAVY)
-    draw_text(cv, 16, 10, 'THE DAY IN WORLD NEWS', 2, CREAM)
-    draw_text(cv, W - 16, 10, '34 STORIES \u2022 7 REGIONS \u2022 ONE DAY', 2, GOLD, align='r')
-    draw_text(cv, W / 2, 32, 'TUESDAY 24 NOVEMBER 2026', 6, CREAM, align='c')
-    draw_text(cv, W / 2, 80,
-              'TOP: IRAN VOWS TO FIGHT BLOCKADE \u2022 COP31 ENDS WITH NO DEAL \u2022 HUANG BACK AT NVIDIA',
-              2, (200, 210, 225), align='c')
+    draw_text(cv, 16, 8, 'THE DAY IN WORLD NEWS', F(SANS_B, 14), CREAM)
+    draw_text(cv, W - 16, 8, '34 STORIES \u2022 7 REGIONS \u2022 ONE DAY',
+              F(SANS_B, 14), GOLD, align='r')
+    msize = 48
+    while F(SERIF_B, msize).getlength('Tuesday 24 November 2026') > 960 and msize > 36:
+        msize -= 2
+    draw_text(cv, W / 2, 25, 'Tuesday 24 November 2026', F(SERIF_B, msize),
+              CREAM, align='c')
+    ticker = 'Top: ' + ' \u2022 '.join(sentence_case(h['headline']) for h in HEROES)
+    draw_text(cv, W / 2, 83, ticker, F(SANS, 13), (200, 210, 225), align='c')
 
     # ---- multicolour stripe 100..106 ----
     stripe_cols = [RED, GOLD, GREEN, BLUE, ORANGE, TEAL]
     for i, c in enumerate(stripe_cols):
         cv.fill_rect(i * W // 6, 100, W // 6 + 1, 6, c)
 
-    # ---- UTC timeline strip 106..178 ----
-    cv.fill_rect(0, 106, W, 72, CREAM)
-    draw_text(cv, 16, 110, 'TUESDAY 24 NOVEMBER - AS THE DAY UNFOLDED (UTC)', 2, NAVY)
-    cv.line(16, 134, W - 16, 134, NAVY, 2)
+    # ---- UTC timeline strip 106..176 ----
+    cv.fill_rect(0, 106, W, 70, CREAM)
+    draw_text(cv, 16, 109, 'TUESDAY 24 NOVEMBER - AS THE DAY UNFOLDED (UTC)',
+              F(SANS_B, 13), NAVY)
+    cv.line(16, 130, W - 16, 130, NAVY, 2)
     col_w = (W - 32) / 6
     for i, (t, label) in enumerate(TIMELINE):
         cx = 16 + i * col_w
-        cv.circle(int(cx + 8), 134, 5, RED)
-        draw_text(cv, cx, 140, t, 2, RED)
-        lines = wrap_text(label, 1.5, col_w - 12)
-        for j, ln in enumerate(lines[:3]):
-            draw_text(cv, cx, 156 + j * 11, ln, 1.5, INK)
+        cv.circle(int(cx + 8), 130, 5, RED)
+        draw_text(cv, cx, 134, t, F(SANS_B, 12), RED)
+        lines = wrap_text(title_case(label), F(SANS, 11), col_w - 12)
+        assert len(lines) <= 2, ('timeline', label, lines)
+        for j, ln in enumerate(lines[:2]):
+            draw_text(cv, cx, 149 + j * 13, ln, F(SANS, 11), INK)
 
-    # ---- 6 big numbers 178..224 ----
-    cv.fill_rect(0, 178, W, 46, PAPER)
+    # ---- 6 big numbers 176..226 (gold divider + BY THE NUMBERS tab) ----
+    cv.fill_rect(0, 176, W, 50, PAPER)
+    cv.fill_rect(0, 176, W, 3, GOLD)
+    cv.fill_rect(12, 175, 156, 12, PAPER)
+    draw_text(cv, 16, 176, 'BY THE NUMBERS', F(SANS_B, 9), GREY)
     for i, (num, label) in enumerate(NUMBERS):
         cx = 16 + i * col_w
-        draw_text(cv, cx, 182, num, 4, RED)
-        draw_text(cv, cx, 212, label, 1.5, INK)
+        draw_text(cv, cx, 188, num, F(SANS_B, 22), RED)
+        draw_text(cv, cx, 214, title_case(label), F(SANS, 10), INK)
 
-    # ---- region bar 224..242 ----
-    cv.fill_rect(0, 224, W, 18, PAPER)
-    reg_text = 'REGIONS: ' + ' \u2022 '.join('%s %d' % (n, v) for n, v, _ in REGIONS)
-    draw_text(cv, W / 2, 226, reg_text, 1.5, NAVY, align='c')
+    # ---- region bar 226..242 ----
+    cv.fill_rect(0, 226, W, 16, PAPER)
+    reg_text = 'Regions: ' + ' \u2022 '.join(
+        '%s %d' % (title_case(n), v) for n, v, _ in REGIONS)
+    draw_text(cv, W / 2, 227, reg_text, F(SANS, 11), NAVY, align='c')
     bx = 8
     total = sum(v for _, v, _ in REGIONS)
     for _, v, col in REGIONS:
         seg = int(1008 * v / total)
-        cv.fill_rect(bx, 238, seg, 4, col)
+        cv.fill_rect(bx, 240, seg, 2, col)
         bx += seg
 
     # ---- 3 hero panels 242..432 ----
@@ -708,52 +696,58 @@ def build():
         y = 242
         w = 332
         cv.rect(x, y, w, 190, NAVY, 2)
-        SCENES[hero['scene']](cv, x + 2, y + 2, w - 4, 88)
+        SCENES[hero['scene']](cv, x + 2, y + 2, w - 4, 86)
         # kicker strip over art bottom
-        cv.fill_rect(x + 2, y + 74, w - 4, 16, NAVY)
-        draw_text(cv, x + 8, y + 77,
+        cv.fill_rect(x + 2, y + 72, w - 4, 16, NAVY)
+        draw_text(cv, x + 8, y + 74,
                   '%s \u2022 %s \u2022 %s' % (hero['num'], hero['city'], hero['region']),
-                  1.6, CREAM)
+                  F(SANS_B, 13), CREAM)
         # veracity chip top-right of art
         word, col = VERACITY[hero['tag']]
-        cw = text_w(word, 1.5) + 10
+        cf = F(SANS_B, 11)
+        cw = int(text_w(word, cf)) + 12
         cv.fill_rect(x + w - cw - 6, y + 6, cw, 16, col)
-        draw_text(cv, x + w - cw - 1, y + 9, word, 1.5, WHITE)
+        draw_text(cv, x + w - cw, y + 8, word, cf, WHITE)
         # red banner = headline
-        cv.fill_rect(x + 2, y + 90, w - 4, 52, RED)
-        lines = wrap_text(hero['headline'], 3, w - 20)
+        cv.fill_rect(x + 2, y + 88, w - 4, 52, RED)
+        lines = wrap_text(title_case(hero['headline']), F(SANS_B, 21), w - 20)
+        assert len(lines) <= 2, ('hero headline', hero['headline'], lines)
         for j, ln in enumerate(lines[:2]):
-            draw_text(cv, x + 10, y + 94 + j * 22, ln, 3, WHITE)
+            draw_text(cv, x + 10, y + 90 + j * 25, ln, F(SANS_B, 21), WHITE)
         # deck
-        dlines = wrap_text(hero['deck'], 2, w - 16)
+        dlines = wrap_text(sentence_case(hero['deck']), F(SANS, 14), w - 16)
+        assert len(dlines) <= 2, ('hero deck', hero['deck'], dlines)
         for j, ln in enumerate(dlines[:2]):
-            draw_text(cv, x + 8, y + 146 + j * 13, ln, 2, INK)
+            draw_text(cv, x + 8, y + 144 + j * 17, ln, F(SANS, 14), INK)
         # source
-        draw_text(cv, x + 8, y + 178, hero['source'], 1.6, GREY)
+        draw_text(cv, x + 8, y + 178, hero['source'], F(SANS, 10), GREY)
 
-    # ---- 10 small panels, 2 rows of 5 ----
+    # ---- 10 small panels, 2 rows of 5 (y 436 / 566, h 124) ----
     pw, gap = 196, 7
     for row in range(2):
         for col_i in range(5):
             p = SMALL[row * 5 + col_i]
             x = 8 + col_i * (pw + gap)
-            y = 440 + row * 128
-            cv.rect(x, y, pw, 122, NAVY, 1)
-            SCENES[p['scene']](cv, x + 1, y + 1, pw - 2, 36)
-            draw_chip(cv, x + pw - 17, y + 4, p['tag'])
-            draw_text(cv, x + 6, y + 40, '%s \u2022 %s' % (p['num'], p['city']), 2, NAVY)
-            hlines = wrap_text(p['headline'], 2, pw - 12)
+            y = 436 + row * 130
+            cv.rect(x, y, pw, 124, NAVY, 1)
+            SCENES[p['scene']](cv, x + 1, y + 1, pw - 2, 30)
+            draw_chip(cv, x + pw - 18, y + 3, p['tag'])
+            draw_text(cv, x + 6, y + 33, '%s \u2022 %s' % (p['num'], p['city']),
+                      F(SANS_B, 12), NAVY)
+            hlines = wrap_text(title_case(p['headline']), F(SANS_B, 15), pw - 12)
+            assert len(hlines) <= 2, ('headline', p['headline'], hlines)
             for j, ln in enumerate(hlines[:2]):
-                draw_text(cv, x + 6, y + 54 + j * 14, ln, 2, INK)
-            dlines = wrap_text(p['deck'], 1.9, pw - 12)
+                draw_text(cv, x + 6, y + 49 + j * 18, ln, F(SANS_B, 15), INK)
+            dlines = wrap_text(sentence_case(p['deck']), F(SANS, 11), pw - 12)
+            assert len(dlines) <= 2, ('deck', p['deck'], dlines)
             for j, ln in enumerate(dlines[:2]):
-                draw_text(cv, x + 6, y + 84 + j * 13, ln, 1.9, INK)
-            draw_text(cv, x + 6, y + 112, p['source'], 1.5, GREY)
+                draw_text(cv, x + 6, y + 85 + j * 13, ln, F(SANS, 11), INK)
+            draw_text(cv, x + 6, y + 112, p['source'], F(SANS, 10), GREY)
 
     # ---- map + ALSO ON 692..950 ----
     cv.fill_rect(0, 692, W, 258, CREAM)
-    draw_text(cv, 16, 696, 'WHERE IT HAPPENED', 2, NAVY)
-    draw_text(cv, 438, 696, 'ALSO ON - 14 TO 34', 2, NAVY)
+    draw_text(cv, 16, 696, 'WHERE IT HAPPENED', F(SANS_B, 13), NAVY)
+    draw_text(cv, 438, 696, 'ALSO ON - 14 TO 34', F(SANS_B, 13), NAVY)
     # map box
     mx0, my0, mx1, my1 = 8, 720, 430, 940
     cv.fill_rect(mx0, my0, mx1 - mx0, my1 - my0, SEA)
@@ -771,7 +765,7 @@ def build():
     for label, lon, lat in (('ATLANTIC', -32, 8), ('PACIFIC', -152, -2),
                             ('INDIAN OCEAN', 88, -28)):
         lx, ly = ll2xy(lon, lat)
-        draw_text(cv, lx, ly, label, 1.4, (90, 120, 150), align='c')
+        draw_text(cv, lx, ly, label, F(SANS, 10), (90, 120, 150), align='c')
     # pins 1..13
     for num, lon, lat, dx, dy in PINS:
         px, py = ll2xy(lon, lat)
@@ -779,10 +773,9 @@ def build():
         py += dy
         cv.circle(int(px), int(py), 9, RED)
         cv.circle(int(px), int(py), 9, WHITE, fill=False)
-        lab = str(num)
-        draw_text(cv, int(px), int(py) - 5, lab, 1.5, WHITE, align='c')
+        draw_text_c(cv, int(px), int(py), str(num), F(SANS_B, 11), WHITE)
 
-    # ALSO ON two columns x 11 rows (2 lines max per item, scale 1.5)
+    # ALSO ON two columns x 11 rows, one line per item
     col_xs = [438, 732]
     col_ws = [284, 284]
     for idx, item in enumerate(ALSO_ON):
@@ -790,53 +783,42 @@ def build():
         ci = idx // 11
         ri = idx % 11
         cx = col_xs[ci]
-        cy = 708 + ri * 22
-        full = '%d %s' % (num, item)
-        lines = wrap_text(full, 1.5, col_ws[ci])
-        for j, ln in enumerate(lines[:2]):
-            draw_text(cv, cx, cy + j * 11, ln, 1.5, INK)
+        cy = 712 + ri * 22
+        full = '%d %s' % (num, title_case(item))
+        lines = wrap_text(full, F(SANS, 9.5), col_ws[ci])
+        assert len(lines) == 1, ('also-on', full, lines)
+        draw_text(cv, cx, cy, lines[0], F(SANS, 9.5), INK)
 
-    # ---- DATE CHECK 950..998 ----
-    cv.fill_rect(8, 950, W - 16, 48, (255, 238, 238))
+    # ---- DATE CHECK 950..998: black text on pale peach, red border ----
+    cv.fill_rect(8, 950, W - 16, 48, DC_BG)
     cv.rect(8, 950, W - 16, 48, RED, 2)
     dc = [
-        'DATE CHECK - WIRES READ UP TO 15:00 UTC, TUE 24 NOV 2026.',
-        'EVERY STORY HERE WAS REPORTED, OR STILL DEVELOPING, ON 24 NOV IN AT LEAST ONE TIME ZONE.',
-        "LEFT OUT: VOYAGER 1 (20 NOV) \u2022 BITCOIN LOW (21 NOV) \u2022 NIGERIA BOAT TOLL (22 NOV).",
-        "NOT YET: IRAN'S 14 TANKERS TEST THE BLOCKADE \u2022 EU PACKAGE NEEDS UNANIMITY.",
+        ('Date Check \u2014 Wires read up to 15:00 UTC, Tue 24 Nov 2026. '
+         'Every story here was reported, or still developing, on 24 Nov '
+         'in at least one time zone.', True),
+        ('Left out: Voyager 1 (20 Nov) \u2022 Bitcoin low (21 Nov) \u2022 '
+         'Nigeria boat toll (22 Nov).', False),
+        ('Not yet: Iran\u2019s 14 tankers test the blockade \u2022 '
+         'EU package needs unanimity.', False),
     ]
-    for j, ln in enumerate(dc):
-        draw_text(cv, 16, 953 + j * 11, ln, 1.5, RED_DK)
+    for j, (ln, bold) in enumerate(dc):
+        fnt = F(SANS_B, 11) if bold else F(SANS, 11)
+        assert fnt.getlength(ln) <= 992, ('date-check', ln)
+        draw_text(cv, 16, 953 + j * 13, ln, fnt, INK)
 
     # ---- footer 998..1024 ----
-    draw_text(cv, W / 2, 999,
-              'EVERY STORY HERE WAS REPORTED ON TUE 24 NOV 2026 IN AT LEAST ONE TIME ZONE.',
-              1.5, INK, align='c')
+    draw_text(cv, W / 2, 1000,
+              'Every story here was reported on Tue 24 Nov 2026 in at least one time zone.',
+              F(SANS, 10), INK, align='c')
     draw_text(cv, W / 2, 1012,
-              'SOURCES: REUTERS, AP, BBC, CNN, GUARDIAN, AFP, SPACE.COM \u2022 ORIGINAL DRAWINGS.',
-              1.5, GREY, align='c')
+              'Sources: Reuters, AP, BBC, CNN, Guardian, AFP, Space.com \u2022 Original drawings.',
+              F(SANS, 10), GREY, align='c')
     return cv
 
 
 def save_png(cv, path):
-    raw = bytearray()
-    for yy in range(H):
-        raw.append(0)
-        raw += cv.px[yy * W * 3:(yy + 1) * W * 3]
-
-    def chunk(typ, data):
-        c = struct.pack('>I', len(data)) + typ + data
-        c += struct.pack('>I', zlib.crc32(typ + data) & 0xffffffff)
-        return c
-
-    ihdr = struct.pack('>IIBBBBB', W, H, 8, 2, 0, 0, 0)
-    png = b'\x89PNG\r\n\x1a\n'
-    png += chunk(b'IHDR', ihdr)
-    png += chunk(b'IDAT', zlib.compress(bytes(raw), 6))
-    png += chunk(b'IEND', b'')
-    with open(path, 'wb') as f:
-        f.write(png)
-    return len(png)
+    cv.img.save(path, "PNG")
+    return os.path.getsize(path)
 
 
 if __name__ == '__main__':
