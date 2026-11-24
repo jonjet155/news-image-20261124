@@ -599,17 +599,20 @@ CONTINENTS = {
 # land, 19px from pin 11); pin 8 back east onto Korea's east coast
 # (was in Manchuria after the v3.2 dx -14); pin 6 nudged +1px east so
 # its centre sits 4px inside the enlarged Java polygon.
+# v3.5 (blind R6 fixes): pin 9 pushed 2px further SW, pin 5 pushed
+# 4px E + 2px N, pin 2 pushed 2px S - min pairwise gap in the
+# Europe cluster now ~21px (was ~19px, circles r=9 nearly touched);
+# every pin centre still on rendered land (pixel check).
 PINS = [
     (1, 51.4, 35.7, 5, -6),     # Tehran
-    (2, 30.7, 36.9, -2, -4),    # Antalya
+    (2, 30.7, 36.9, -4, -4),    # Antalya (v3.5: dx -2 -> -4, +2px W)
     (3, -74.0, 40.7, -2, 0),    # New York (v3.3: true NYC, east coast)
-    (4, 21.0, 52.2, -6, 6),     # Warsaw (declustered SW, C. Europe)
-    (5, 30.5, 50.45, 2, -2),    # Kyiv (v3.2: was Benghazi; EUR polygon
-                                 # extended east so Kyiv is on land)
+    (4, 21.0, 52.2, -8, 6),     # Warsaw (v3.5: dx -6 -> -8, +2px W)
+    (5, 30.5, 50.45, 6, -4),    # Kyiv (v3.5: dx 2 -> 6, dy -2 -> -4)
     (6, 106.8, -6.2, 1, 1),     # Jakarta (v3.3: enlarged Java polygon)
     (7, 34.5, 31.5, 8, 0),      # Gaza
     (8, 130.9, 37.5, 2, 2),     # Ulleung (v3.3: Korea east coast)
-    (9, 4.35, 50.85, -8, 8),    # Brussels (declustered SW, France)
+    (9, 4.35, 50.85, -10, 10),  # Brussels (v3.5: dx -8 -> -10, dy 8 -> 10)
     (10, -93.1, 41.9, -4, -10), # Iowa
     (11, -77.0, 38.9, -32, 6),  # Washington (declustered W, New Mexico)
     (12, -122.4, 37.8, 3, -2),  # San Francisco (v3.3: Anthropic HQ)
@@ -634,7 +637,7 @@ HEROES = [
          source='BBC • CNN • GUARDIAN', tag='C'),
     dict(num='03', city='NEW YORK', region='AMERICAS', scene='nvidia',
          headline='HUANG REINSTATED AT NVIDIA',
-         deck='RESIGNED NOV 12; BOARD RESTORES CEO AFTER TRUMP PUSH; SHARES SURGE 30%',
+         deck='RESIGNED NOV 12; BOARD RESTORES CEO AFTER TRUMP PUSH; SHARES SURGE 31%',
          source='REUTERS • BLOOMBERG', tag='R'),
 ]
 
@@ -655,7 +658,7 @@ SMALL = [
          headline='RUSSIAN JET SPARKS ALERT',
          deck='ALERT LIFTED IN MINUTES; NO AIRSPACE VIOLATION', source='REUTERS', tag='C'),
     dict(num='09', city='BRUSSELS', scene='eu',
-         headline='EU PROPOSES NEW RUSSIA CURBS',
+         headline='EU PROPOSES 22ND RUSSIA CURBS',
          deck='RUSSIAN ATHLETES BANNED; BANKS, CRYPTO HIT', source='REUTERS', tag='O'),
     dict(num='10', city='IOWA', scene='iowa',
          headline='IOWA BLAST CLEANUP PAUSED',
