@@ -614,7 +614,7 @@ PINS = [
     (8, 130.9, 37.5, 2, 2),     # Ulleung (v3.3: Korea east coast)
     (9, 4.35, 50.85, -10, 10),  # Brussels (v3.5: dx -8 -> -10, dy 8 -> 10)
     (10, -93.1, 41.9, -4, -10), # Iowa
-    (11, -77.0, 38.9, -32, 6),  # Washington (declustered W, New Mexico)
+    (11, -77.0, 38.9, -20, 6),  # Washington (v3.6: dx -32 -> -20; -32 put pin in New Mexico, caught by both R7 judges)
     (12, -122.4, 37.8, 3, -2),  # San Francisco (v3.3: Anthropic HQ)
     (13, -17.4, 14.7, 12, 0),   # Dakar
 ]
@@ -637,7 +637,7 @@ HEROES = [
          source='BBC • CNN • GUARDIAN', tag='C'),
     dict(num='03', city='NEW YORK', region='AMERICAS', scene='nvidia',
          headline='HUANG REINSTATED AT NVIDIA',
-         deck='RESIGNED NOV 12; BOARD RESTORES CEO AFTER TRUMP PUSH; SHARES SURGE 31%',
+         deck='RESIGNED NOV 12; RESTORED NOV 23 AFTER TRUMP PUSH; SHARES SURGE 31%',
          source='REUTERS • BLOOMBERG', tag='R'),
 ]
 
@@ -668,7 +668,7 @@ SMALL = [
          deck='$15BN IN FLOWS FLAGGED; DOZENS SANCTIONED', source='US TREASURY', tag='C'),
     dict(num='12', city='SAN FRANCISCO', scene='anthropic',
          headline='ANTHROPIC OPTIONS DEBUT',
-         deck='BRISK VOLUME, 606K CONTRACTS; TRAILS SPACEX RECORD', source='REUTERS', tag='R'),
+         deck='BRISK VOLUME, 606K CONTRACTS; SPACEX RECORD 1.8M', source='REUTERS', tag='R'),
     dict(num='13', city='DAKAR', scene='football',
          headline='CAS TO RULE ON AFCON TITLE',
          deck='SENEGAL APPEALS MOROCCO WIN; RULING TODAY', source='REUTERS', tag='F'),
@@ -913,7 +913,7 @@ def build():
 
     # ---- footer 998..1024 ----
     draw_text(cv, W / 2, 1000,
-              'Every story here was reported on Tue 24 Nov 2026 in at least one time zone.',
+              'One day, 34 stories \u2014 Tuesday 24 November 2026.',
               F(SANS, 10), INK, align='c')
     draw_text(cv, W / 2, 1012,
               'Sources: Reuters, Euronews, Fox News, BBC, CNN, Guardian, Bloomberg, KCNA, Space.com, US Treasury \u2022 Original drawings.',
