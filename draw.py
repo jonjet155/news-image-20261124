@@ -322,12 +322,12 @@ def scene_market(cv, x, y, w, h):
 
 def scene_radar(cv, x, y, w, h):
     cv.fill_rect(x, y, w, h, NAVY2)
-    # radar rings
+    # radar rings (radii fit inside the h=30 strip: cy=y+16, r<=14)
     cx, cy = x + int(w * 0.5), y + int(h * 0.55)
-    for r in (30, 20, 10):
+    for r in (14, 9, 5):
         cv.circle(cx, cy, r, (120, 160, 210), fill=False)
-    cv.line(cx, cy, cx + 26, cy - 18, GREEN, 2)
-    cv.circle(cx + 26, cy - 18, 4, GREEN)
+    cv.line(cx, cy, cx + 12, cy - 8, GREEN, 2)
+    cv.circle(cx + 12, cy - 8, 4, GREEN)
     # plane silhouette
     cv.triangle([(x + int(w * 0.12), y + int(h * 0.2)),
                  (x + int(w * 0.30), y + int(h * 0.16)),
@@ -719,8 +719,8 @@ def build():
         assert len(dlines) <= 2, ('hero deck', hero['deck'], dlines)
         for j, ln in enumerate(dlines[:2]):
             draw_text(cv, x + 8, y + 144 + j * 17, ln, F(SANS, 14), INK)
-        # source
-        draw_text(cv, x + 8, y + 178, hero['source'], F(SANS, 10), GREY)
+        # source (y+174: ink bottom 425, border rows 430-431 -> 4px margin)
+        draw_text(cv, x + 8, y + 174, hero['source'], F(SANS, 10), GREY)
 
     # ---- 10 small panels, 2 rows of 5 (y 436 / 566, h 124) ----
     pw, gap = 196, 7
@@ -742,7 +742,8 @@ def build():
             assert len(dlines) <= 2, ('deck', p['deck'], dlines)
             for j, ln in enumerate(dlines[:2]):
                 draw_text(cv, x + 6, y + 85 + j * 13, ln, F(SANS, 11), INK)
-            draw_text(cv, x + 6, y + 112, p['source'], F(SANS, 10), GREY)
+            # source (y+110: ink bottom 555, border row 559 -> 3px margin)
+            draw_text(cv, x + 6, y + 110, p['source'], F(SANS, 10), GREY)
 
     # ---- map + ALSO ON 692..950 ----
     cv.fill_rect(0, 692, W, 258, CREAM)
