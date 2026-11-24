@@ -288,6 +288,12 @@ def scene_tanker(cv, x, y, w, h):
     cv.fill_rect(x + int(w * 0.40), y + int(h * 0.32), int(w * 0.10), int(h * 0.10), GOLD)
     cv.fill_rect(x + int(w * 0.52), y + int(h * 0.32), int(w * 0.10), int(h * 0.10), TEAL)
     cv.fill_rect(x + int(w * 0.63), y + int(h * 0.34), int(w * 0.09), int(h * 0.08), ORANGE)
+    # portholes on the hull + wake astern (v3.4: flat hull detail)
+    for px in (0.16, 0.24, 0.32):
+        cv.circle(x + int(w * px), y + int(h * 0.54), 2, WHITE)
+    for wx in (0.02, 0.05, 0.08):
+        cv.line(x + int(w * wx), y + int(h * 0.68),
+                x + int(w * (wx + 0.02)), y + int(h * 0.68), WHITE, 2)
     # second ship far
     cv.fill_rect(x + int(w * 0.76), y + int(h * 0.52), int(w * 0.18), int(h * 0.12), NAVY2)
     # waves: two rows + foam at the waterline (v3.3). The kicker
@@ -310,6 +316,16 @@ def scene_climate(cv, x, y, w, h):
     cv.circle(cx - int(r * 0.3), cy - int(r * 0.2), int(r * 0.45), GREEN)
     cv.circle(cx + int(r * 0.35), cy + int(r * 0.3), int(r * 0.35), GREEN)
     cv.circle(cx, cy, r, NAVY, fill=False)
+    # meridians + equator (v3.4: bare globe read as a flat ball)
+    cv.d.ellipse([cx - int(r * 0.45), cy - r, cx + int(r * 0.45), cy + r],
+                 outline=NAVY, width=1)
+    cv.d.ellipse([cx - r, cy - int(r * 0.28), cx + r, cy + int(r * 0.28)],
+                 outline=NAVY, width=1)
+    # thermometer, right of the globe (v3.4: heat cue for the no-deal COP)
+    tx = x + int(w * 0.90)
+    cv.fill_rect(tx - 2, y + int(h * 0.38), 4, int(h * 0.24), WHITE)
+    cv.fill_rect(tx - 1, y + int(h * 0.42), 2, int(h * 0.20), RED)
+    cv.circle(tx, y + int(h * 0.64), 5, RED)
     # sun with rays (v3.2: smaller, fits the h=20 art strip)
     sx, sy = x + int(w * 0.85), y + int(h * 0.18)
     cv.circle(sx, sy, 7, GOLD)
@@ -348,6 +364,12 @@ def scene_nvidia(cv, x, y, w, h):
         cv.fill_rect(cx - 40, py, 6, 6, (24, 96, 54))
         cv.fill_rect(cx + 34, py, 6, 6, (24, 96, 54))
     draw_text_c(cv, cx, cy, "AI", F(SANS_B, 20), WHITE)
+    # circuit traces from the chip to the arrow (v3.4: right side was empty)
+    for ty in (0.30, 0.50, 0.70):
+        yy = y + int(h * ty)
+        cv.line(cx + 40, yy, x + int(w * 0.66), yy, TEAL, 2)
+        cv.circle(cx + 40, yy, 2, TEAL)
+        cv.circle(x + int(w * 0.66), yy, 3, TEAL)
     # rising arrow, right side
     ax0, ay0 = x + int(w * 0.68), y + int(h * 0.80)
     ax1, ay1 = x + int(w * 0.94), y + int(h * 0.16)
@@ -604,15 +626,15 @@ VERACITY = {'C': ('CONFIRMED', GREEN), 'O': ('OFFICIALS', BLUE),
 HEROES = [
     dict(num='01', city='KHARG ISLAND', region='MIDDLE EAST', scene='tanker',
          headline='IRAN VOWS TO FIGHT US BLOCKADE',
-         deck='14 TANKERS AT KHARG; TRUMP WARNS THEY WILL SINK',
+         deck='14 TANKERS AT KHARG; TRUMP WARNS TANKERS WILL SINK',
          source='REUTERS • EURONEWS • FOX NEWS', tag='O'),
     dict(num='02', city='ANTALYA', region='GLOBAL', scene='climate',
          headline='COP31 ENDS WITH NO DEAL',
          deck='FIRST NO-DEAL COP SINCE 2009; PACIFIC IN DESPAIR',
          source='BBC • CNN • GUARDIAN', tag='C'),
     dict(num='03', city='NEW YORK', region='AMERICAS', scene='nvidia',
-         headline='HUANG BACK AT NVIDIA',
-         deck='CEO REINSTATED IN TRUMP DEAL; SHARES SURGE',
+         headline='HUANG REINSTATED AT NVIDIA',
+         deck='RESIGNED NOV 12; BOARD RESTORES CEO AFTER TRUMP PUSH; SHARES SURGE 30%',
          source='REUTERS • BLOOMBERG', tag='R'),
 ]
 
@@ -631,7 +653,7 @@ SMALL = [
          deck='UNRWA WORKER AMONG DEAD; 3 WOUNDED', source='REUTERS', tag='C'),
     dict(num='08', city='ULLEUNG', scene='plane',
          headline='RUSSIAN JET SPARKS ALERT',
-         deck='WARNING LIFTED AFTER 3 MINUTES; RUSSIAN JETS IN AIRSPACE', source='REUTERS', tag='C'),
+         deck='ALERT LIFTED IN MINUTES; NO AIRSPACE VIOLATION', source='REUTERS', tag='C'),
     dict(num='09', city='BRUSSELS', scene='eu',
          headline='EU PROPOSES NEW RUSSIA CURBS',
          deck='RUSSIAN ATHLETES BANNED; BANKS, CRYPTO HIT', source='REUTERS', tag='O'),
@@ -643,7 +665,7 @@ SMALL = [
          deck='$15BN IN FLOWS FLAGGED; DOZENS SANCTIONED', source='US TREASURY', tag='C'),
     dict(num='12', city='SAN FRANCISCO', scene='anthropic',
          headline='ANTHROPIC OPTIONS DEBUT',
-         deck='OPTIONS DEBUT; BRISK VOLUME, TRAILS SPACEX RECORD', source='REUTERS', tag='R'),
+         deck='BRISK VOLUME, 606K CONTRACTS; TRAILS SPACEX RECORD', source='REUTERS', tag='R'),
     dict(num='13', city='DAKAR', scene='football',
          headline='CAS TO RULE ON AFCON TITLE',
          deck='SENEGAL APPEALS MOROCCO WIN; RULING TODAY', source='REUTERS', tag='F'),
@@ -678,7 +700,7 @@ TIMELINE = [
     ("01:00", "COP31 FALLOUT: PACIFIC DESPAIR"),
     ("02:00", "INDONESIA: SEARCH FOR 34 MISSING"),
     ("06:00", "NATO TO SEND AWACS TO POLAND"),
-    ("09:00", "EU UNVEILS 22ND SANCTIONS PACKAGE"),
+    ("09:00", "EU PROPOSES 22ND SANCTIONS PACKAGE"),
     ("14:00", "IOWA BLAST CLEANUP PAUSED"),
 ]
 
