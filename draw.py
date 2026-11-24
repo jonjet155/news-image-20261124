@@ -53,7 +53,7 @@ DC_BG = (255, 243, 232)
 ACRONYMS = {
     "COP31", "NATO", "EU", "AWACS", "AFCON", "KCNA", "WFP", "BBC", "AP",
     "AFP", "REUTERS", "US", "UK", "UN", "UNRWA", "CEO", "COP", "AI", "II",
-    "NVIDIA", "CAS",
+    "NVIDIA", "CAS", "NOV",
 }
 SPECIAL = {"SPACEX": "SpaceX", "SPACE.COM": "Space.com", "ETFS": "ETFs"}
 # Small words kept lowercase in title case (unless first/last word).
@@ -637,7 +637,7 @@ HEROES = [
          source='BBC • CNN • GUARDIAN', tag='C'),
     dict(num='03', city='NEW YORK', region='AMERICAS', scene='nvidia',
          headline='HUANG REINSTATED AT NVIDIA',
-         deck='RESIGNED NOV 12; RESTORED NOV 23 AFTER TRUMP PUSH; SHARES SURGE 31%',
+         deck='RESTORED NOV 23 AFTER TRUMP PUSH; NVIDIA SHARES SURGE 31% ON MONDAY',
          source='REUTERS • BLOOMBERG', tag='R'),
 ]
 
@@ -668,7 +668,7 @@ SMALL = [
          deck='$15BN IN FLOWS FLAGGED; DOZENS SANCTIONED', source='US TREASURY', tag='C'),
     dict(num='12', city='SAN FRANCISCO', scene='anthropic',
          headline='ANTHROPIC OPTIONS DEBUT',
-         deck='BRISK VOLUME, 606K CONTRACTS; SPACEX RECORD 1.8M', source='REUTERS', tag='R'),
+         deck='BRISK VOLUME, 606K CONTRACTS; SPACEX RECORD 1.8M CONTRACTS', source='REUTERS', tag='R'),
     dict(num='13', city='DAKAR', scene='football',
          headline='CAS TO RULE ON AFCON TITLE',
          deck='SENEGAL APPEALS MOROCCO WIN; RULING TODAY', source='REUTERS', tag='F'),
