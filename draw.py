@@ -55,7 +55,7 @@ ACRONYMS = {
     "AFP", "REUTERS", "US", "UK", "UN", "UNRWA", "CEO", "COP", "AI", "II",
     "NVIDIA", "CAS",
 }
-SPECIAL = {"SPACEX": "SpaceX", "SPACE.COM": "Space.com"}
+SPECIAL = {"SPACEX": "SpaceX", "SPACE.COM": "Space.com", "ETFS": "ETFs"}
 # Small words kept lowercase in title case (unless first/last word).
 SMALL_WORDS = {
     "a", "an", "the", "to", "in", "on", "at", "of", "for", "with", "by",
@@ -64,6 +64,7 @@ SMALL_WORDS = {
 # Proper nouns that stay capitalised in sentence-case decks.
 PROPER = {
     "KHARG", "TRUMP", "PACIFIC", "POLISH", "BENGHAZI", "SENEGAL", "MOROCCO",
+    "KYIV", "POLAND", "RUSSIAN",
 }
 
 
@@ -292,12 +293,12 @@ def scene_climate(cv, x, y, w, h):
     cv.circle(cx - int(r * 0.3), cy - int(r * 0.2), int(r * 0.45), GREEN)
     cv.circle(cx + int(r * 0.35), cy + int(r * 0.3), int(r * 0.35), GREEN)
     cv.circle(cx, cy, r, NAVY, fill=False)
-    # sun with rays
+    # sun with rays (v3.2: smaller, fits the h=20 art strip)
     sx, sy = x + int(w * 0.85), y + int(h * 0.18)
-    cv.circle(sx, sy, 9, GOLD)
+    cv.circle(sx, sy, 7, GOLD)
     for a in range(0, 360, 45):
-        dx = int(14 * math.cos(math.radians(a)))
-        dy = int(14 * math.sin(math.radians(a)))
+        dx = int(11 * math.cos(math.radians(a)))
+        dy = int(11 * math.sin(math.radians(a)))
         cv.line(sx, sy, sx + dx, sy + dy, GOLD, 2)
     # cracked ground line
     cv.line(x + int(w * 0.1), y + int(h * 0.88), x + int(w * 0.9), y + int(h * 0.88), BROWN, 3)
@@ -322,12 +323,12 @@ def scene_market(cv, x, y, w, h):
 
 def scene_radar(cv, x, y, w, h):
     cv.fill_rect(x, y, w, h, NAVY2)
-    # radar rings (radii fit inside the h=30 strip: cy=y+16, r<=14)
+    # radar rings (v3.2: radii fit the h=20 strip: cy=y+11, r<=9)
     cx, cy = x + int(w * 0.5), y + int(h * 0.55)
-    for r in (14, 9, 5):
+    for r in (9, 6, 3):
         cv.circle(cx, cy, r, (120, 160, 210), fill=False)
-    cv.line(cx, cy, cx + 12, cy - 8, GREEN, 2)
-    cv.circle(cx + 12, cy - 8, 4, GREEN)
+    cv.line(cx, cy, cx + 8, cy - 5, GREEN, 2)
+    cv.circle(cx + 8, cy - 5, 3, GREEN)
     # plane silhouette
     cv.triangle([(x + int(w * 0.12), y + int(h * 0.2)),
                  (x + int(w * 0.30), y + int(h * 0.16)),
@@ -344,10 +345,10 @@ def scene_ship(cv, x, y, w, h):
                  (x + int(w * 0.7), y + int(h * 0.60)),
                  (x + int(w * 0.86), y + int(h * 0.60))], GREY)
     cv.fill_rect(x + int(w * 0.3), y + int(h * 0.32), int(w * 0.08), int(h * 0.12), WHITE)
-    # explosion star
+    # explosion star (v3.2: smaller, fits the h=20 strip)
     ex, ey = x + int(w * 0.72), y + int(h * 0.36)
-    cv.circle(ex, ey, 10, GOLD)
-    cv.circle(ex, ey, 5, ORANGE)
+    cv.circle(ex, ey, 7, GOLD)
+    cv.circle(ex, ey, 4, ORANGE)
     # drones
     cv.circle(x + int(w * 0.15), y + int(h * 0.22), 3, WHITE)
     cv.circle(x + int(w * 0.3), y + int(h * 0.12), 3, WHITE)
@@ -414,9 +415,9 @@ def scene_eu(cv, x, y, w, h):
 def scene_iowa(cv, x, y, w, h):
     cv.fill_rect(x, y, w, h, SKY)
     cv.fill_rect(x, y + int(h * 0.62), w, int(h * 0.38), (190, 170, 90))
-    # silo
+    # silo (v3.2: dome radius scaled to the h=20 strip, stays inside)
     cv.fill_rect(x + int(w * 0.14), y + int(h * 0.3), int(w * 0.16), int(h * 0.34), GREY)
-    cv.circle(x + int(w * 0.22), y + int(h * 0.3), int(w * 0.08), RED)
+    cv.circle(x + int(w * 0.22), y + int(h * 0.35), int(h * 0.30), RED)
     # pause sign
     cv.fill_rect(x + int(w * 0.6), y + int(h * 0.14), int(w * 0.07), int(h * 0.4), RED)
     cv.fill_rect(x + int(w * 0.74), y + int(h * 0.14), int(w * 0.07), int(h * 0.4), RED)
@@ -432,7 +433,7 @@ def scene_bank(cv, x, y, w, h):
     for i in range(4):
         cv.fill_rect(x + int(w * 0.2) + i * int(w * 0.17), y + int(h * 0.36),
                      int(w * 0.08), int(h * 0.44), NAVY2)
-    draw_text_c(cv, x + w / 2, y + int(h * 0.62), "$", F(SANS_B, 15), RED)
+    draw_text_c(cv, x + w / 2, y + int(h * 0.62), "$", F(SANS_B, 13), RED)
 
 
 def scene_anthropic(cv, x, y, w, h):
@@ -444,7 +445,7 @@ def scene_anthropic(cv, x, y, w, h):
         bh = int(h * 0.65 * v)
         cv.fill_rect(x + int(w * 0.08) + i * bw, base - bh, int(bw * 0.62), bh,
                      ORANGE if i == len(vals) - 1 else (200, 150, 90))
-    draw_text_c(cv, x + w / 2, y + int(h * 0.30), "AI", F(SANS_B, 15), NAVY)
+    draw_text_c(cv, x + w / 2, y + int(h * 0.38), "AI", F(SANS_B, 12), NAVY)
 
 
 def scene_football(cv, x, y, w, h):
@@ -458,12 +459,25 @@ def scene_football(cv, x, y, w, h):
     cv.circle(x + int(w * 0.72), y + int(h * 0.68), 3, BLACK)
 
 
+def scene_kyiv(cv, x, y, w, h):
+    # Kyiv at dusk: golden-domed church + skyline, alert light (v3.2).
+    cv.fill_rect(x, y, w, h, (38, 52, 84))
+    cv.fill_rect(x + int(w * 0.06), y + int(h * 0.60), int(w * 0.16), int(h * 0.40), (56, 70, 104))
+    cv.fill_rect(x + int(w * 0.78), y + int(h * 0.55), int(w * 0.16), int(h * 0.40), (56, 70, 104))
+    cv.fill_rect(x + int(w * 0.30), y + int(h * 0.45), int(w * 0.40), int(h * 0.55), (74, 92, 134))
+    cv.circle(x + int(w * 0.38), y + int(h * 0.44), 6, GOLD)
+    cv.circle(x + int(w * 0.50), y + int(h * 0.38), 7, GOLD)
+    cv.circle(x + int(w * 0.62), y + int(h * 0.44), 6, GOLD)
+    cv.circle(x + int(w * 0.86), y + int(h * 0.30), 4, RED)
+    cv.line(x + int(w * 0.10), y + int(h * 0.18), x + int(w * 0.24), y + int(h * 0.30), GOLD, 2)
+
+
 SCENES = {
     'tanker': scene_tanker, 'climate': scene_climate, 'market': scene_market,
     'radar': scene_radar, 'ship': scene_ship, 'fire': scene_fire,
     'gaza': scene_gaza, 'plane': scene_plane, 'eu': scene_eu,
     'iowa': scene_iowa, 'bank': scene_bank, 'anthropic': scene_anthropic,
-    'football': scene_football,
+    'football': scene_football, 'kyiv': scene_kyiv,
 }
 
 # ---- world map (same continents and pins as v2; all pins on land) ----
@@ -483,7 +497,8 @@ CONTINENTS = {
             (12, -18), (12, -8), (9, 0), (5, 5), (-5, 5), (-10, 8), (-15, 12)],
     'EUR': [(-10, 36), (-5, 44), (-2, 48), (0, 50), (5, 53), (8, 57), (10, 59),
             (15, 58), (20, 55), (25, 60), (30, 62), (35, 65), (40, 68),
-            (45, 68), (40, 60), (35, 55), (30, 50), (25, 45), (20, 40),
+            (45, 68), (40, 60), (35, 55), (38, 52), (40, 50), (30, 50),
+            (25, 45), (20, 40),
             (15, 38), (10, 38), (5, 38), (0, 38), (-5, 36)],
     'ASIA': [(40, 68), (50, 70), (60, 72), (70, 73), (80, 74), (90, 75),
              (100, 76), (110, 76), (120, 75), (130, 72), (140, 72), (150, 70),
@@ -508,22 +523,24 @@ CONTINENTS = {
 }
 
 # (number, lon, lat, dx, dy) - dx/dy manual decluster offsets in px.
-# v2: every pin centre on rendered land (verified point-in-polygon +
-# pixel ring); pins 3/12 both New York, declustered; pin 12 moved
-# from San Francisco to New York (its story's city).
+# v3.2: pin 5 moved Benghazi -> Kyiv (panel 05 swap); pin 8 moved west
+# onto mainland; pins 3/12 declustered further; pin 1 nudged north so
+# pins 1-7 clear 18px; every pin centre on rendered land (point-in-
+# polygon + pixel check).
 PINS = [
-    (1, 51.4, 35.7, 5, 0),      # Tehran
+    (1, 51.4, 35.7, 5, -6),     # Tehran
     (2, 30.7, 36.9, -2, -4),    # Antalya
-    (3, -74.0, 40.7, 0, -14),   # New York
-    (4, 21.0, 52.2, 6, 0),      # Warsaw
-    (5, 20.1, 32.1, 0, 10),     # Benghazi
+    (3, -74.0, 40.7, 0, -22),   # New York (declustered north, Canada)
+    (4, 21.0, 52.2, -6, 6),     # Warsaw (declustered SW, C. Europe)
+    (5, 30.5, 50.45, 2, -2),    # Kyiv (v3.2: was Benghazi; EUR polygon
+                                 # extended east so Kyiv is on land)
     (6, 106.8, -6.2, 0, 1),     # Jakarta (on new Java island polygon)
     (7, 34.5, 31.5, 8, 0),      # Gaza
-    (8, 130.9, 37.5, -6, -6),   # Ulleung
-    (9, 4.35, 50.85, 2, 6),     # Brussels
+    (8, 130.9, 37.5, -14, -4),  # Ulleung (v3.2: west onto mainland)
+    (9, 4.35, 50.85, -8, 8),    # Brussels (declustered SW, France)
     (10, -93.1, 41.9, -4, -10), # Iowa
-    (11, -77.0, 38.9, -22, 12), # Washington
-    (12, -74.0, 40.7, -10, 2),  # New York (Anthropic)
+    (11, -77.0, 38.9, -32, 6),  # Washington (declustered W, New Mexico)
+    (12, -74.0, 40.7, -14, 10), # New York (Anthropic; SW, Alabama)
     (13, -17.4, 14.7, 12, 0),   # Dakar
 ]
 
@@ -552,40 +569,40 @@ HEROES = [
 SMALL = [
     dict(num='04', city='WARSAW', scene='radar',
          headline='NATO SENDS AWACS TO POLAND',
-         deck='3 MISSILES HIT POLISH SOIL', source='REUTERS', tag='C'),
-    dict(num='05', city='BENGHAZI', scene='ship',
-         headline='UKRAINE SINKS RUSSIAN SHIP',
-         deck='HIT BY DRONES IN BENGHAZI PORT', source='REUTERS', tag='O'),
+         deck='3 KH-101 MISSILES LANDED IN POLAND', source='REUTERS', tag='C'),
+    dict(num='05', city='KYIV \u2022 UKRAINE', scene='kyiv',
+         headline='ZELENSKIY: RUSSIA PLANS NEW STRIKES',
+         deck='INTEL SHOWS STRIKES PLANNED; 5 HURT IN KYIV', source='REUTERS', tag='O'),
     dict(num='06', city='INDONESIA', scene='fire',
          headline='24 DEAD IN FACTORY FIRE',
-         deck='34 MISSING; SEARCH ON', source='REUTERS', tag='C'),
+         deck='34 MISSING; SEARCH CONTINUES AT FACTORY', source='REUTERS', tag='C'),
     dict(num='07', city='GAZA', scene='gaza',
-         headline='STRIKES KILL 3 IN GAZA',
-         deck='UNRWA WORKER AMONG DEAD', source='REUTERS', tag='C'),
+         headline='ISRAELI STRIKES KILL 3',
+         deck='UNRWA WORKER AMONG DEAD; 3 WOUNDED', source='REUTERS', tag='C'),
     dict(num='08', city='ULLEUNG', scene='plane',
          headline='RUSSIAN JET SPARKS ALERT',
-         deck='WARNING LIFTED AFTER 3 MINUTES', source='REUTERS', tag='C'),
+         deck='WARNING LIFTED AFTER 3 MINUTES; RUSSIAN JETS IN AIRSPACE', source='REUTERS', tag='C'),
     dict(num='09', city='BRUSSELS', scene='eu',
          headline='EU PROPOSES NEW RUSSIA CURBS',
-         deck='ATHLETE BAN IN 22ND PACKAGE', source='REUTERS', tag='O'),
+         deck='ATHLETE BAN IN 22ND PACKAGE; BANKS, CRYPTO HIT', source='REUTERS', tag='O'),
     dict(num='10', city='IOWA', scene='iowa',
          headline='TRUMP PAUSES IOWA BLAST',
-         deck='TOXIC LEAD AZIDE STAYS PUT', source='REUTERS', tag='C'),
+         deck='TOXIC LEAD AZIDE STAYS PUT PENDING COURT RULING', source='REUTERS', tag='C'),
     dict(num='11', city='WASHINGTON', scene='bank',
          headline='US HITS IRAN SHADOW BANKS',
-         deck='$15BN IN FLOWS FLAGGED', source='US TREASURY', tag='C'),
+         deck='$15BN IN FLOWS FLAGGED; DOZENS SANCTIONED', source='US TREASURY', tag='C'),
     dict(num='12', city='NEW YORK', scene='anthropic',
          headline='ANTHROPIC OPTIONS DEBUT',
-         deck='BRISK VOLUME; SHARES SLIP', source='REUTERS', tag='R'),
+         deck='BRISK VOLUME; SHARES SLIP; ETFS START TRADING', source='REUTERS', tag='R'),
     dict(num='13', city='DAKAR', scene='football',
          headline='CAS TO RULE ON AFCON TITLE',
-         deck='SENEGAL APPEALS MOROCCO WIN', source='REUTERS', tag='F'),
+         deck='SENEGAL APPEALS MOROCCO WIN; RULING TODAY', source='REUTERS', tag='F'),
 ]
 
 ALSO_ON = [
     "SINGER AHMADI GETS 74 LASHES (REUTERS)",
     "GERMANY TO USE KYIV DELTA WAR TOOL (REUTERS)",
-    "ZELENSKIY: RUSSIA PLANS NEW STRIKES (REUTERS)",
+    "UKRAINE SINKS RUSSIAN SHIP IN BENGHAZI (REUTERS)",
     "RUSSIAN DRONE ENTERS POLISH AIRSPACE (REUTERS)",
     "N. KOREA MAY SHUT SWISS OFFICE (KCNA)",
     "MURMANSK GOVERNOR HELD IN GRAFT CASE (REUTERS)",
@@ -593,14 +610,14 @@ ALSO_ON = [
     "MEXICO NABS 'EL CHAPO ISIDRO' (REUTERS)",
     "US MAY TRAIN SYRIAN TROOPS (REUTERS)",
     "MOSCOW WARNS ESTONIA OF 'OPEN WAR' (REUTERS)",
-    "TRUMP BLASTS NEWSOM OVER 548 COMMUTES (REUTERS)",
+    "TRUMP BLASTS NEWSOM: 548 COMMUTES (REUTERS)",
     "WFP: WARS HIT FOOD AID FOR 7.3M (REUTERS)",
     "HIT CARGO SHIP SPARTA II DOCKS SAFE (REUTERS)",
     "MELENCHON GAINS IN FRENCH POLL (REUTERS)",
     "DENMARK COURT BACKS GHETTO EVICTIONS (REUTERS)",
     "UK: SPACEX CURBS 'DENTED TRUST' (REUTERS)",
     "OIL SLUMPS TO 3-MONTH LOW (REUTERS)",
-    "HEDGE FUNDS IN WORST WEEK SINCE 2025 (REUTERS)",
+    "HEDGE FUNDS' WORST WEEK SINCE 2025 (REUTERS)",
     "AMAZON LAUNCHES KUIPER SATELLITES (SPACE.COM)",
     "AUSTRALIA: COP FALLOUT; HANSON TEST (REUTERS)",
     "MOSCOW HONOURS SECRET POLICE FOUNDER (REUTERS)",
@@ -722,35 +739,46 @@ def build():
         # source (y+174: ink bottom 425, border rows 430-431 -> 4px margin)
         draw_text(cv, x + 8, y + 174, hero['source'], F(SANS, 10), GREY)
 
-    # ---- 10 small panels, 2 rows of 5 (y 436 / 566, h 124) ----
+    # ---- 10 small panels, 2 rows of 5 (y 436 / 562, h 120; v3.2: art
+    # 30->20, decks extended to 2 lines, legend fits below row 2) ----
     pw, gap = 196, 7
     for row in range(2):
         for col_i in range(5):
             p = SMALL[row * 5 + col_i]
             x = 8 + col_i * (pw + gap)
-            y = 436 + row * 130
-            cv.rect(x, y, pw, 124, NAVY, 1)
-            SCENES[p['scene']](cv, x + 1, y + 1, pw - 2, 30)
+            y = 436 + row * 126
+            cv.rect(x, y, pw, 120, NAVY, 1)
+            SCENES[p['scene']](cv, x + 1, y + 1, pw - 2, 20)
             draw_chip(cv, x + pw - 18, y + 3, p['tag'])
-            draw_text(cv, x + 6, y + 33, '%s \u2022 %s' % (p['num'], p['city']),
+            draw_text(cv, x + 6, y + 23, '%s \u2022 %s' % (p['num'], p['city']),
                       F(SANS_B, 12), NAVY)
             hlines = wrap_text(title_case(p['headline']), F(SANS_B, 15), pw - 12)
             assert len(hlines) <= 2, ('headline', p['headline'], hlines)
             for j, ln in enumerate(hlines[:2]):
-                draw_text(cv, x + 6, y + 49 + j * 18, ln, F(SANS_B, 15), INK)
+                draw_text(cv, x + 6, y + 39 + j * 18, ln, F(SANS_B, 15), INK)
             dlines = wrap_text(sentence_case(p['deck']), F(SANS, 11), pw - 12)
             assert len(dlines) <= 2, ('deck', p['deck'], dlines)
             for j, ln in enumerate(dlines[:2]):
-                draw_text(cv, x + 6, y + 85 + j * 13, ln, F(SANS, 11), INK)
-            # source (y+110: ink bottom 555, border row 559 -> 3px margin)
-            draw_text(cv, x + 6, y + 110, p['source'], F(SANS, 10), GREY)
+                draw_text(cv, x + 6, y + 75 + j * 13, ln, F(SANS, 11), INK)
+            # source (y+103: ink bottom ~116, border row 119 -> 3px margin)
+            draw_text(cv, x + 6, y + 103, p['source'], F(SANS, 10), GREY)
 
-    # ---- map + ALSO ON 692..950 ----
-    cv.fill_rect(0, 692, W, 258, CREAM)
-    draw_text(cv, 16, 696, 'WHERE IT HAPPENED', F(SANS_B, 13), NAVY)
-    draw_text(cv, 438, 696, 'ALSO ON - 14 TO 34', F(SANS_B, 13), NAVY)
+    # ---- veracity legend 686 + map + ALSO ON 684..950 ----
+    cv.fill_rect(0, 684, W, 266, CREAM)
+    leg = [("C", GREEN), (" = CONFIRMED  \u2022  ", NAVY),
+           ("O", BLUE), (" = OFFICIALS  \u2022  ", NAVY),
+           ("R", AMBER), (" = REPORTED  \u2022  ", NAVY),
+           ("F", PURPLE), (" = FORECAST", NAVY)]
+    lf = F(SANS_B, 10)
+    leg_w = sum(text_w(t, lf) for t, _ in leg) + 2 * (len(leg) - 1)
+    lx = (W - leg_w) / 2
+    for t, col in leg:
+        draw_text(cv, lx, 686, t, lf, col)
+        lx += text_w(t, lf) + 2
+    draw_text(cv, 16, 703, 'WHERE IT HAPPENED', F(SANS_B, 13), NAVY)
+    draw_text(cv, 438, 703, 'ALSO ON - 14 TO 34', F(SANS_B, 13), NAVY)
     # map box
-    mx0, my0, mx1, my1 = 8, 720, 430, 940
+    mx0, my0, mx1, my1 = 8, 727, 430, 940
     cv.fill_rect(mx0, my0, mx1 - mx0, my1 - my0, SEA)
     cv.rect(mx0, my0, mx1 - mx0, my1 - my0, NAVY, 1)
 
@@ -776,7 +804,7 @@ def build():
         cv.circle(int(px), int(py), 9, WHITE, fill=False)
         draw_text_c(cv, int(px), int(py), str(num), F(SANS_B, 11), WHITE)
 
-    # ALSO ON two columns x 11 rows, one line per item
+    # ALSO ON two columns x 11 rows, one line per item (v3.2: 10.5pt)
     col_xs = [438, 732]
     col_ws = [284, 284]
     for idx, item in enumerate(ALSO_ON):
@@ -784,11 +812,11 @@ def build():
         ci = idx // 11
         ri = idx % 11
         cx = col_xs[ci]
-        cy = 712 + ri * 22
+        cy = 719 + ri * 21
         full = '%d %s' % (num, title_case(item))
-        lines = wrap_text(full, F(SANS, 9.5), col_ws[ci])
+        lines = wrap_text(full, F(SANS, 10.5), col_ws[ci])
         assert len(lines) == 1, ('also-on', full, lines)
-        draw_text(cv, cx, cy, lines[0], F(SANS, 9.5), INK)
+        draw_text(cv, cx, cy, lines[0], F(SANS, 10.5), INK)
 
     # ---- DATE CHECK 950..998: black text on pale peach, red border ----
     cv.fill_rect(8, 950, W - 16, 48, DC_BG)
@@ -799,7 +827,7 @@ def build():
          'in at least one time zone.', True),
         ('Left out: Voyager 1 (20 Nov) \u2022 Bitcoin low (21 Nov) \u2022 '
          'Nigeria boat toll (22 Nov).', False),
-        ('Not yet: Iran\u2019s 14 tankers test the blockade \u2022 '
+        ('Not yet: whether Iran\u2019s tankers test the blockade \u2022 '
          'EU package needs unanimity.', False),
     ]
     for j, (ln, bold) in enumerate(dc):
