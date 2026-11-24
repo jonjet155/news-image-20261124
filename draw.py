@@ -510,29 +510,39 @@ CONTINENTS = {
              (122, 38), (120, 32), (115, 25), (110, 20), (108, 12), (105, 8),
              (100, 5), (97, 10), (95, 15), (92, 20), (90, 22), (85, 20),
              (80, 15), (77, 8), (75, 12), (70, 20), (65, 25), (60, 25),
-             (55, 25), (50, 28), (48, 30), (45, 30), (42, 35), (40, 40),
-             (38, 45), (40, 55), (40, 62)],
+             (55, 25), (50, 28), (48, 30), (45, 30), (40, 29), (35, 29.5),
+             (33, 31), (33.5, 33), (37, 34.5), (40, 35), (42, 35), (38, 36),
+             (33, 35.5), (28, 36.5), (26, 38.5), (27, 40), (30, 41),
+             (35, 41.5), (40, 40), (38, 45), (40, 55), (40, 62)],
+    'IDN_SUMATRA': [(95, 5.5), (98, 3.5), (101, 0.5), (103, -1.5),
+                    (105, -3.5), (106, -5), (104, -5.5), (102, -3),
+                    (100, -0.5), (97, 2), (95, 4.5)],
+    'IDN_JAVA': [(104, -4.5), (108, -5), (112, -5.5), (114, -6),
+                 (114, -9.5), (110, -9.5), (106, -9), (104, -7)],
     'AUS': [(113, -22), (114, -30), (115, -35), (120, -34), (125, -32),
             (130, -32), (135, -35), (140, -38), (145, -38), (150, -37),
             (153, -32), (153, -27), (150, -22), (146, -19), (142, -11),
             (137, -12), (132, -12), (127, -14), (122, -17), (118, -20)],
 }
 
-# (number, lon, lat, dx, dy) - dx/dy manual decluster offsets in px
+# (number, lon, lat, dx, dy) - dx/dy manual decluster offsets in px.
+# v2: every pin centre on rendered land (verified point-in-polygon +
+# pixel ring); pins 3/12 both New York, declustered; pin 12 moved
+# from San Francisco to New York (its story's city).
 PINS = [
     (1, 51.4, 35.7, 5, 0),      # Tehran
-    (2, 30.7, 36.9, -5, -6),    # Antalya
-    (3, -74.0, 40.7, 0, 0),     # New York
-    (4, 21.0, 52.2, 6, -4),     # Warsaw
-    (5, 20.1, 32.1, 0, 6),      # Benghazi
-    (6, 106.8, -6.2, 0, -12),   # Jakarta
-    (7, 34.5, 31.5, 11, 4),     # Gaza
-    (8, 130.9, 37.5, -10, 0),   # Ulleung
-    (9, 4.35, 50.85, -2, 2),    # Brussels
-    (10, -93.1, 41.9, 0, -8),   # Iowa
-    (11, -77.0, 38.9, -14, 14), # Washington
-    (12, -122.4, 37.8, 0, 0),   # San Francisco
-    (13, -17.4, 14.7, 8, 0),    # Dakar
+    (2, 30.7, 36.9, -2, -4),    # Antalya
+    (3, -74.0, 40.7, 0, -14),   # New York
+    (4, 21.0, 52.2, 6, 0),      # Warsaw
+    (5, 20.1, 32.1, 0, 10),     # Benghazi
+    (6, 106.8, -6.2, 0, 1),     # Jakarta (on new Java island polygon)
+    (7, 34.5, 31.5, 8, 0),      # Gaza
+    (8, 130.9, 37.5, -6, -6),   # Ulleung
+    (9, 4.35, 50.85, 2, 6),     # Brussels
+    (10, -93.1, 41.9, -4, -10), # Iowa
+    (11, -77.0, 38.9, -22, 12), # Washington
+    (12, -74.0, 40.7, -10, 2),  # New York (Anthropic)
+    (13, -17.4, 14.7, 12, 0),   # Dakar
 ]
 
 
@@ -558,10 +568,10 @@ HEROES = [
 SMALL = [
     dict(num='04', city='WARSAW', scene='radar',
          headline='NATO SENDS AWACS TO POLAND',
-         deck='3 MISSILES HIT POLAND FRIDAY', source='REUTERS', tag='C'),
+         deck='3 MISSILES HIT POLAND', source='REUTERS', tag='C'),
     dict(num='05', city='BENGHAZI', scene='ship',
          headline='UKRAINE SINKS RUSSIAN SHIP',
-         deck='MERKURY SUNK BY DRONES', source='REUTERS', tag='O'),
+         deck='SUNK BY DRONES IN BENGHAZI PORT', source='REUTERS', tag='O'),
     dict(num='06', city='INDONESIA', scene='fire',
          headline='24 DEAD IN FACTORY FIRE',
          deck='34 MISSING; SEARCH ON', source='REUTERS', tag='C'),
@@ -618,7 +628,7 @@ TIMELINE = [
     ("02:00", "INDONESIA: SEARCH FOR 34 MISSING"),
     ("06:00", "NATO TO SEND AWACS TO POLAND"),
     ("09:00", "EU UNVEILS 22ND SANCTIONS PACKAGE"),
-    ("14:00", "IOWA BLAST PAUSED; NVIDIA RALLIES"),
+    ("14:00", "TRUMP PAUSES IOWA BLAST"),
 ]
 
 NUMBERS = [
@@ -719,7 +729,7 @@ def build():
         for j, ln in enumerate(dlines[:2]):
             draw_text(cv, x + 8, y + 146 + j * 13, ln, 2, INK)
         # source
-        draw_text(cv, x + 8, y + 178, hero['source'], 1.5, GREY)
+        draw_text(cv, x + 8, y + 178, hero['source'], 1.6, GREY)
 
     # ---- 10 small panels, 2 rows of 5 ----
     pw, gap = 196, 7
@@ -735,15 +745,15 @@ def build():
             hlines = wrap_text(p['headline'], 2, pw - 12)
             for j, ln in enumerate(hlines[:2]):
                 draw_text(cv, x + 6, y + 54 + j * 14, ln, 2, INK)
-            dlines = wrap_text(p['deck'], 2, pw - 12)
+            dlines = wrap_text(p['deck'], 1.9, pw - 12)
             for j, ln in enumerate(dlines[:2]):
-                draw_text(cv, x + 6, y + 84 + j * 13, ln, 2, INK)
-            draw_text(cv, x + 6, y + 112, p['source'], 1.4, GREY)
+                draw_text(cv, x + 6, y + 84 + j * 13, ln, 1.9, INK)
+            draw_text(cv, x + 6, y + 112, p['source'], 1.5, GREY)
 
-    # ---- map + ALSO ON 692..944 ----
-    cv.fill_rect(0, 692, W, 252, CREAM)
-    draw_text(cv, 16, 698, 'WHERE IT HAPPENED', 2, NAVY)
-    draw_text(cv, 438, 698, 'ALSO ON - 14 TO 34', 2, NAVY)
+    # ---- map + ALSO ON 692..950 ----
+    cv.fill_rect(0, 692, W, 258, CREAM)
+    draw_text(cv, 16, 696, 'WHERE IT HAPPENED', 2, NAVY)
+    draw_text(cv, 438, 696, 'ALSO ON - 14 TO 34', 2, NAVY)
     # map box
     mx0, my0, mx1, my1 = 8, 720, 430, 940
     cv.fill_rect(mx0, my0, mx1 - mx0, my1 - my0, SEA)
@@ -772,37 +782,37 @@ def build():
         lab = str(num)
         draw_text(cv, int(px), int(py) - 5, lab, 1.5, WHITE, align='c')
 
-    # ALSO ON three columns x 7 rows (3 lines max per item)
-    col_xs = [438, 633, 828]
-    col_ws = [187, 187, 188]
+    # ALSO ON two columns x 11 rows (2 lines max per item, scale 1.5)
+    col_xs = [438, 732]
+    col_ws = [284, 284]
     for idx, item in enumerate(ALSO_ON):
         num = 14 + idx
-        ci = idx // 7
-        ri = idx % 7
+        ci = idx // 11
+        ri = idx % 11
         cx = col_xs[ci]
-        cy = 712 + ri * 33
+        cy = 708 + ri * 22
         full = '%d %s' % (num, item)
         lines = wrap_text(full, 1.5, col_ws[ci])
-        for j, ln in enumerate(lines[:3]):
+        for j, ln in enumerate(lines[:2]):
             draw_text(cv, cx, cy + j * 11, ln, 1.5, INK)
 
-    # ---- DATE CHECK 944..992 ----
-    cv.fill_rect(8, 944, W - 16, 48, (255, 238, 238))
-    cv.rect(8, 944, W - 16, 48, RED, 2)
+    # ---- DATE CHECK 950..998 ----
+    cv.fill_rect(8, 950, W - 16, 48, (255, 238, 238))
+    cv.rect(8, 950, W - 16, 48, RED, 2)
     dc = [
-        'DATE CHECK - WIRES READ UP TO 00:20 UTC, TUE 24 NOV 2026.',
+        'DATE CHECK - WIRES READ UP TO 15:00 UTC, TUE 24 NOV 2026.',
         'EVERY STORY HERE WAS REPORTED, OR STILL DEVELOPING, ON 24 NOV IN AT LEAST ONE TIME ZONE.',
-        "LEFT OUT: VOYAGER 1 (20 NOV) \u2022 BITCOIN LOW (21 NOV) \u2022 NIGERIA BOAT TOLL (22 NOV) \u2022 ANTHROPIC DEBUT (20 NOV).",
+        "LEFT OUT: VOYAGER 1 (20 NOV) \u2022 BITCOIN LOW (21 NOV) \u2022 NIGERIA BOAT TOLL (22 NOV).",
         "NOT YET: IRAN'S 14 TANKERS TEST THE BLOCKADE \u2022 EU PACKAGE NEEDS UNANIMITY.",
     ]
     for j, ln in enumerate(dc):
-        draw_text(cv, 16, 947 + j * 11, ln, 1.5, RED_DK)
+        draw_text(cv, 16, 953 + j * 11, ln, 1.5, RED_DK)
 
-    # ---- footer 992..1024 ----
-    draw_text(cv, W / 2, 996,
+    # ---- footer 998..1024 ----
+    draw_text(cv, W / 2, 999,
               'EVERY STORY HERE WAS REPORTED ON TUE 24 NOV 2026 IN AT LEAST ONE TIME ZONE.',
               1.5, INK, align='c')
-    draw_text(cv, W / 2, 1010,
+    draw_text(cv, W / 2, 1012,
               'SOURCES: REUTERS, AP, BBC, CNN, GUARDIAN, AFP, SPACE.COM \u2022 ORIGINAL DRAWINGS.',
               1.5, GREY, align='c')
     return cv
