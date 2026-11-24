@@ -53,7 +53,7 @@ DC_BG = (255, 243, 232)
 ACRONYMS = {
     "COP31", "NATO", "EU", "AWACS", "AFCON", "KCNA", "WFP", "BBC", "AP",
     "AFP", "REUTERS", "US", "UK", "UN", "UNRWA", "CEO", "COP", "AI", "II",
-    "NVIDIA", "CAS", "NOV",
+    "NVIDIA", "CAS", "NOV", "MONDAY",
 }
 SPECIAL = {"SPACEX": "SpaceX", "SPACE.COM": "Space.com", "ETFS": "ETFs"}
 # Small words kept lowercase in title case (unless first/last word).
