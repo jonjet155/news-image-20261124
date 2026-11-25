@@ -383,8 +383,9 @@ def scene_nvidia(cv, x, y, w, h):
 
 def scene_radar(cv, x, y, w, h):
     cv.fill_rect(x, y, w, h, NAVY2)
-    # radar rings (v3.2: radii fit the h=20 strip: cy=y+11, r<=9)
-    cx, cy = x + int(w * 0.5), y + int(h * 0.55)
+    # radar rings (v3.11: centre 0.5w -> 0.46w - the rings' right edge
+    # sat under the veracity word pill; v3.2 radii still fit h=28)
+    cx, cy = x + int(w * 0.46), y + int(h * 0.55)
     for r in (9, 6, 3):
         cv.circle(cx, cy, r, (120, 160, 210), fill=False)
     cv.line(cx, cy, cx + 8, cy - 5, GREEN, 2)
@@ -428,9 +429,10 @@ def scene_fire(cv, x, y, w, h):
         cv.triangle([(x + int(w * fx) - 14, y + int(h * 0.34)),
                      (x + int(w * fx), y + int(h * 0.02) - i * 3),
                      (x + int(w * fx) + 14, y + int(h * 0.34))], ORANGE if i % 2 else GOLD)
-    # smoke
+    # smoke (v3.11: second puff moved left, 0.6w -> 0.45w - the
+    # veracity word pill now covers the art strip's right half)
     cv.circle(x + int(w * 0.2), y + int(h * 0.08), 8, GREY)
-    cv.circle(x + int(w * 0.6), y + int(h * 0.05), 7, GREY)
+    cv.circle(x + int(w * 0.45), y + int(h * 0.06), 7, GREY)
 
 
 def scene_gaza(cv, x, y, w, h):
@@ -442,7 +444,7 @@ def scene_gaza(cv, x, y, w, h):
     # smoke columns
     cv.circle(x + int(w * 0.42), y + int(h * 0.16), 10, GREY)
     cv.circle(x + int(w * 0.48), y + int(h * 0.08), 8, GREY)
-    cv.circle(x + int(w * 0.78), y + int(h * 0.2), 9, (170, 170, 168))
+    cv.circle(x + int(w * 0.48), y + int(h * 0.14), 9, (170, 170, 168))  # v3.11: smoke moved left (was 0.78w, under the veracity pill)
     # sun
     cv.circle(x + int(w * 0.85), y + int(h * 0.14), 8, GOLD)
 
@@ -455,10 +457,12 @@ def scene_plane(cv, x, y, w, h):
                  (x + int(w * 0.55), y + int(h * 0.28)),
                  (x + int(w * 0.2), y + int(h * 0.48))], NAVY)
     cv.fill_rect(x + int(w * 0.5), y + int(h * 0.28), int(w * 0.3), 4, NAVY)
-    # warning triangle
-    tx, ty = x + int(w * 0.8), y + int(h * 0.55)
-    cv.triangle([(tx, ty - 12), (tx - 12, ty + 10), (tx + 12, ty + 10)], AMBER)
-    draw_text_c(cv, tx, ty + 1, "!", F(SANS_B, 15), NAVY)
+    # warning triangle, bottom-left (v3.11: was top-right at 0.8w,
+    # where the veracity word pill now sits - the "!" was fully
+    # covered by the pill; smaller, fits the 28px strip)
+    tx, ty = x + int(w * 0.10), y + int(h * 0.72)
+    cv.triangle([(tx, ty - 9), (tx - 9, ty + 8), (tx + 9, ty + 8)], AMBER)
+    draw_text_c(cv, tx, ty + 1, "!", F(SANS_B, 12), NAVY)
 
 
 def scene_eu(cv, x, y, w, h):
@@ -478,9 +482,10 @@ def scene_iowa(cv, x, y, w, h):
     # silo (v3.2: dome radius scaled to the h=20 strip, stays inside)
     cv.fill_rect(x + int(w * 0.14), y + int(h * 0.3), int(w * 0.16), int(h * 0.34), GREY)
     cv.circle(x + int(w * 0.22), y + int(h * 0.35), int(h * 0.30), RED)
-    # pause sign
-    cv.fill_rect(x + int(w * 0.6), y + int(h * 0.14), int(w * 0.07), int(h * 0.4), RED)
-    cv.fill_rect(x + int(w * 0.74), y + int(h * 0.14), int(w * 0.07), int(h * 0.4), RED)
+    # pause sign (v3.11: bars moved left, 0.60/0.74w -> 0.34/0.46w -
+    # the veracity word pill now covers the art strip's right half)
+    cv.fill_rect(x + int(w * 0.34), y + int(h * 0.14), int(w * 0.07), int(h * 0.4), RED)
+    cv.fill_rect(x + int(w * 0.46), y + int(h * 0.14), int(w * 0.07), int(h * 0.4), RED)
 
 
 def scene_bank(cv, x, y, w, h):
@@ -514,9 +519,10 @@ def scene_football(cv, x, y, w, h):
     cv.rect(x + int(w * 0.08), y + int(h * 0.12), int(w * 0.84), int(h * 0.76), WHITE, 2)
     cv.circle(x + int(w * 0.5), y + int(h * 0.5), 12, WHITE, fill=False)
     cv.line(x + int(w * 0.5), y + int(h * 0.12), x + int(w * 0.5), y + int(h * 0.88), WHITE, 2)
-    # ball
-    cv.circle(x + int(w * 0.72), y + int(h * 0.68), 9, WHITE)
-    cv.circle(x + int(w * 0.72), y + int(h * 0.68), 3, BLACK)
+    # ball (v3.11: 0.72w -> 0.30w - the veracity word pill now covers
+    # the art strip's right half, where the ball used to sit)
+    cv.circle(x + int(w * 0.30), y + int(h * 0.68), 9, WHITE)
+    cv.circle(x + int(w * 0.30), y + int(h * 0.68), 3, BLACK)
 
 
 def scene_kyiv(cv, x, y, w, h):
@@ -528,7 +534,7 @@ def scene_kyiv(cv, x, y, w, h):
     cv.circle(x + int(w * 0.38), y + int(h * 0.44), 6, GOLD)
     cv.circle(x + int(w * 0.50), y + int(h * 0.38), 7, GOLD)
     cv.circle(x + int(w * 0.62), y + int(h * 0.44), 6, GOLD)
-    cv.circle(x + int(w * 0.86), y + int(h * 0.30), 4, RED)
+    cv.circle(x + int(w * 0.12), y + int(h * 0.45), 4, RED)  # v3.11: alert dot moved left (was 0.86w, under the veracity pill)
     cv.line(x + int(w * 0.10), y + int(h * 0.18), x + int(w * 0.24), y + int(h * 0.30), GOLD, 2)
 
 
@@ -574,14 +580,15 @@ CONTINENTS = {
     'IDN_SUMATRA': [(95, 5.5), (98, 3.5), (101, 0.5), (103, -1.5),
                     (105, -3.5), (106, -5), (104, -5.5), (102, -3),
                     (100, -0.5), (97, 2), (95, 4.5)],
-    # v3.3: Java enlarged (was a 7px sliver hidden behind the r=9 pin,
-    # so the pin read as floating in the Indian Ocean): now ~21px wide
-    # x ~17px tall, pin centre 5+px inside every edge, land visible
-    # on both sides of the pin. Sunda Strait stays a ~2px gap to
-    # Sumatra's tip (the strait itself is sub-pixel at this scale).
-    'IDN_JAVA': [(99, -2.5), (104, -3), (108, -3.5), (112, -4),
-                 (116, -4.5), (116, -11), (112, -14),
-                 (107, -14), (102, -13.5), (99, -9)],
+    # v3.11: Java enlarged again (was ~20x18px, still read as floating
+    # in R10/R11 - the r=9 pin hid the whole sliver). Now ~29px wide
+    # x ~18px tall with the pin centre 13-15px inside both ends, so
+    # green shows ~4-6px on BOTH sides of the disc at full size. The
+    # north edge stays >=3px south of Sumatra's tip (Sunda Strait
+    # stays open) and the south edge stays well north of Australia.
+    'IDN_JAVA': [(98, -8), (100, -8.5), (106, -7), (112, -3.5), (118, -4),
+                 (122, -5), (123, -8.5), (119, -12.5), (112, -15.5),
+                 (106, -16), (100, -14.5), (97, -11)],
     'AUS': [(113, -22), (114, -30), (115, -35), (120, -34), (125, -32),
             (130, -32), (135, -35), (140, -38), (145, -38), (150, -37),
             (153, -32), (153, -27), (150, -22), (146, -19), (142, -11),
@@ -603,25 +610,30 @@ CONTINENTS = {
 # 4px E + 2px N, pin 2 pushed 2px S - min pairwise gap in the
 # Europe cluster now ~21px (was ~19px, circles r=9 nearly touched);
 # every pin centre still on rendered land (pixel check).
-# v3.9 (blind R9 fix - "pin Eropa menumpuk"): spread the Europe/ME
-# cluster further (target min gap >= 22px): pin 1 +4E/+3N, pin 4 -2W/-7N,
-# pin 5 +3E/-4N, pin 7 +1E/+2S; pin 8 -4W onto the Korean coast
-# (its centre sat just offshore). Leader lines (see pin loop) mark the
-# true geo point whenever the offset exceeds 10px.
+# v3.11 (blind R10/R11 fix - "pin Eropa menumpuk" at 300px): spread
+# further by optimiser (random-restart hill climb, land = rendered
+# polygon, max offset 18px): min pairwise gap 20.6 -> 25.8px, so the
+# r=9 discs (18px) now clear each other by ~8px at full size (~2.3px
+# at 300px) instead of touching. Offsets >10px get a leader line +
+# dot at the true geo point (see pin loop). Pin 6 moves onto the
+# enlarged Java (dx 4, dy 6); pin 3 nudges north (Maine), pin 10
+# north-west (N. Dakota), pin 11 south (Florida panhandle), pin 5
+# east (Volga), pin 7 south (Egypt) - all centres verified on
+# rendered land by pixel check, not lon/lat.
 PINS = [
-    (1, 51.4, 35.7, 9, -3),     # Tehran (v3.9: dx 5 -> 9, dy -6 -> -3)
-    (2, 30.7, 36.9, -4, -4),    # Antalya (v3.5: dx -2 -> -4, +2px W)
-    (3, -74.0, 40.7, -2, 0),    # New York (v3.3: true NYC, east coast)
-    (4, 21.0, 52.2, -10, -1),   # Warsaw (v3.9: dx -8 -> -10, dy 6 -> -1)
-    (5, 30.5, 50.45, 6, -4),    # Kyiv (v3.5: dx 2 -> 6, dy -2 -> -4; v3.9 tried (9,-8) - SEA, reverted: the (40,60)-(35,55) notch puts it off-land)
-    (6, 106.8, -6.2, 1, 1),     # Jakarta (v3.3: enlarged Java polygon)
-    (7, 34.5, 31.5, 9, 2),      # Gaza (v3.9: dx 8 -> 9, dy 0 -> 2)
-    (8, 130.9, 37.5, -2, 2),    # Ulleung (v3.9: dx 2 -> -2, onto the coast)
-    (9, 4.35, 50.85, -10, 10),  # Brussels (v3.5: dx -8 -> -10, dy 8 -> 10)
-    (10, -93.1, 41.9, -4, -10), # Iowa
-    (11, -77.0, 38.9, -20, 6),  # Washington (v3.6: dx -32 -> -20; -32 put pin in New Mexico, caught by both R7 judges)
-    (12, -122.4, 37.8, 3, -2),  # San Francisco (v3.3: Anthropic HQ)
-    (13, -17.4, 14.7, 12, 0),   # Dakar
+    (1, 51.4, 35.7, 0, -2),     # Tehran (v3.11: dx 9 -> 0, dy -3 -> -2)
+    (2, 30.7, 36.9, -4, -4),    # Antalya (unchanged)
+    (3, -74.0, 40.7, 3, -9),    # New York (v3.11: dx -2 -> 3, dy 0 -> -9)
+    (4, 21.0, 52.2, -7, -3),    # Warsaw (v3.11: dx -10 -> -7, dy -1 -> -3)
+    (5, 30.5, 50.45, 15, -6),   # Kyiv (v3.11: dx 6 -> 15, dy -4 -> -6)
+    (6, 106.8, -6.2, 4, 6),     # Jakarta (v3.11: dx 1 -> 4, dy 1 -> 6)
+    (7, 34.5, 31.5, -4, 16),    # Gaza (v3.11: dx 9 -> -4, dy 2 -> 16)
+    (8, 130.9, 37.5, -2, 2),    # Ulleung (unchanged)
+    (9, 4.35, 50.85, -10, 10),  # Brussels (unchanged)
+    (10, -93.1, 41.9, -2, -6),  # Iowa (v3.11: dx -4 -> -2, dy -10 -> -6)
+    (11, -77.0, 38.9, -10, 15), # Washington (v3.11: dx -20 -> -10, dy 6 -> 15)
+    (12, -122.4, 37.8, 3, -2),  # San Francisco (unchanged)
+    (13, -17.4, 14.7, 12, 0),   # Dakar (unchanged)
 ]
 
 
@@ -682,32 +694,39 @@ SMALL = [
 ALSO_ON = [
     "SINGER AHMADI GETS 74 LASHES (REUTERS)",
     "GERMANY TO USE KYIV DELTA WAR TOOL (REUTERS)",
-    "UKRAINE SINKS SHIP IN BENGHAZI, LIBYA (REUTERS)",
-    "RUSSIAN DRONE ENTERS POLISH AIRSPACE (REUTERS)",
+    "UKRAINE SINKS SHIP, BENGHAZI LIBYA (REUTERS)",
+    "RUSSIAN DRONE ENTERS POLAND (REUTERS)",
     "N. KOREA MAY SHUT SWISS OFFICE (KCNA)",
-    "MURMANSK GOVERNOR HELD IN GRAFT CASE (REUTERS)",
+    "MURMANSK GOVERNOR HELD IN GRAFT (REUTERS)",
     "SENATE PROBES VANCE-VITOL OIL DEAL (REUTERS)",
     "MEXICO NABS 'EL CHAPO ISIDRO' (REUTERS)",
     "US MAY TRAIN SYRIAN TROOPS (REUTERS)",
     "MOSCOW WARNS ESTONIA OF 'OPEN WAR' (REUTERS)",
-    "NEWSOM'S 548 DEATH-ROW COMMUTES (REUTERS)",
+    "NEWSOM COMMUTES 548 DEATH-ROW (REUTERS)",
     "WFP: WARS HIT FOOD AID FOR 7.3M (REUTERS)",
     "HIT CARGO SHIP SPARTA II DOCKS SAFE (REUTERS)",
     "MELENCHON GAINS IN FRENCH POLL (REUTERS)",
-    "DENMARK COURT BACKS GHETTO EVICTIONS (REUTERS)",
+    "DANISH COURT BACKS GHETTO EVICTIONS (REUTERS)",
     "UK: SPACEX CURBS 'DENTED TRUST' (REUTERS)",
     "OIL SLUMPS TO 3-MONTH LOW (REUTERS)",
     "HEDGE FUNDS' WORST WEEK IN YEARS (REUTERS)",
     "AMAZON LAUNCHES KUIPER SATELLITES (SPACE.COM)",
     "AUSTRALIA: COP FALLOUT; HANSON TEST (REUTERS)",
-    "MOSCOW HONOURS SECRET POLICE FOUNDER (REUTERS)",
+    "MOSCOW HONOURS CHEKA FOUNDER (REUTERS)",
 ]
 
+# v3.11: timeline gains a 5th point, 15:00 = the DATE CHECK cutoff
+# (wires read up to 15:00 UTC), NOT a news event - v3.5 searched and
+# found no verified timed event ~15:00 UTC, so nothing is invented.
+# Labels shortened to fit one line at 15pt on the 248px pitch:
+# "NATO SENDS..." matches panel 04's headline; "IOWA BLAST PAUSED"
+# keeps blast + paused (panel 10 carries the full headline).
 TIMELINE = [
     ("00:00", "IRAN VOWS TO FIGHT BLOCKADE"),
     ("02:00", "INDONESIA: 34 MISSING IN FIRE"),
-    ("06:00", "NATO TO SEND AWACS TO POLAND"),
-    ("14:00", "IOWA BLAST CLEANUP PAUSED"),
+    ("06:00", "NATO SENDS AWACS TO POLAND"),
+    ("14:00", "IOWA BLAST PAUSED"),
+    ("15:00", "DATE CHECK"),
 ]
 
 NUMBERS = [
@@ -720,13 +739,20 @@ REGIONS = [("EUROPE", 12, BLUE), ("AMERICAS", 8, RED), ("MIDDLE EAST", 4, AMBER)
            ("GLOBAL", 4, GREY), ("ASIA", 3, GREEN), ("AFRICA", 2, ORANGE),
            ("OCEANIA", 1, TEAL)]
 
-def draw_chip(cv, x, y, tag):
-    # v3.9: 16x16 -> 20x20, letter 11 -> 13pt bold, white outline:
-    # the 1-letter chips were "nearly invisible at thumbnail" (R9, both judges)
+def draw_chip(cv, x_right, y, tag):
+    # v3.11: full-word pill (was a 20x20 one-letter chip - "nearly
+    # invisible at thumbnail", R9/R10/R11: 20px on a 1024 canvas is
+    # ~6px at 300px, one letter unreadable). The word is legible at
+    # full size; at ~300px the pill reads as a coloured tag, and the
+    # enlarged legend below decodes the colours. x_right = right edge
+    # of the pill (6px margin), y = top of the 18px pill.
     word, col = VERACITY[tag]
-    cv.fill_rect(x, y, 20, 20, col)
-    cv.rect(x, y, 20, 20, WHITE, 1)
-    draw_text_c(cv, x + 10, y + 10, tag, F(SANS_B, 13), WHITE)
+    fnt = F(SANS_B, 11)
+    pw = int(text_w(word, fnt)) + 12
+    x = x_right - pw
+    cv.fill_rect(x, y, pw, 18, col)
+    cv.rect(x, y, pw, 18, WHITE, 1)
+    draw_text(cv, x + 6, y + 3, word, fnt, WHITE)
 
 
 def build():
@@ -750,21 +776,31 @@ def build():
     for i, c in enumerate(stripe_cols):
         cv.fill_rect(i * W // 6, 100, W // 6 + 1, 6, c)
 
-    # ---- UTC timeline strip 106..176 (v3.9: 6 -> 4 points, type up:
-    # times 12 -> 15pt bold, labels 11 -> 14pt single line. The 6-point
-    # strip was unreadable at ~300px in every blind round R5-R9.) ----
+    # ---- UTC timeline strip 106..176 (v3.11: 5 points - the 5th is
+    # 15:00 = the DATE CHECK cutoff, a diamond marker, NOT a news
+    # event; labels 14 -> 15pt, times 15 -> 16pt bold. Points sit on
+    # a 248px pitch across the full line; the last point is
+    # right-aligned at the line end so the axis visibly ends 15:00.) ----
     cv.fill_rect(0, 106, W, 70, CREAM)
-    draw_text(cv, 16, 109, 'TUESDAY 24 NOVEMBER - AS THE DAY UNFOLDED (UTC)',
+    draw_text(cv, 16, 109, 'TUESDAY 24 NOVEMBER - AS THE DAY UNFOLDED (UTC, TO 15:00)',
               F(SANS_B, 13), NAVY)
     cv.line(16, 132, W - 16, 132, NAVY, 2)
-    tl_w = (W - 32) / 4
+    tl_pitch = 248
     for i, (t, label) in enumerate(TIMELINE):
-        cx = 16 + i * tl_w
+        if i == len(TIMELINE) - 1:
+            # 15:00 DATE CHECK: diamond at the line end, red bold
+            # time + label right-aligned (never a news event).
+            px, py = W - 24, 132
+            cv.polygon([(px, py - 6), (px + 6, py), (px, py + 6), (px - 6, py)], RED)
+            draw_text(cv, W - 16, 137, t, F(SANS_B, 16), RED, align='r')
+            draw_text(cv, W - 16, 157, title_case(label), F(SANS_B, 15), RED, align='r')
+            continue
+        cx = 16 + i * tl_pitch
         cv.circle(int(cx + 8), 132, 5, RED)
-        draw_text(cv, cx, 137, t, F(SANS_B, 15), RED)
-        lines = wrap_text(title_case(label), F(SANS, 14), tl_w - 12)
+        draw_text(cv, cx, 137, t, F(SANS_B, 16), RED)
+        lines = wrap_text(title_case(label), F(SANS, 15), 236)
         assert len(lines) == 1, ('timeline', label, lines)
-        draw_text(cv, cx, 157, lines[0], F(SANS, 14), INK)
+        draw_text(cv, cx, 157, lines[0], F(SANS, 15), INK)
 
     # ---- 6 big numbers 176..226 (gold divider + BY THE NUMBERS tab) ----
     cv.fill_rect(0, 176, W, 50, PAPER)
@@ -802,12 +838,13 @@ def build():
         draw_text(cv, x + 8, y + 74,
                   '%s \u2022 %s \u2022 %s' % (hero['num'], hero['city'], hero['region']),
                   F(SANS_B, 13), CREAM)
-        # veracity chip top-right of art (v3.9: word 11 -> 12pt bold,
-        # 16 -> 18px tall - same readability complaint as the 1-letter chips)
+        # veracity chip top-right of art (v3.11: full word, 13pt bold,
+        # 20px tall - was 12pt/18px; the one-letter chips were
+        # unreadable at thumbnail, so words are spelled out everywhere)
         word, col = VERACITY[hero['tag']]
-        cf = F(SANS_B, 12)
+        cf = F(SANS_B, 13)
         cw = int(text_w(word, cf)) + 12
-        cv.fill_rect(x + w - cw - 6, y + 5, cw, 18, col)
+        cv.fill_rect(x + w - cw - 6, y + 5, cw, 20, col)
         draw_text(cv, x + w - cw, y + 7, word, cf, WHITE)
         # red banner = headline
         cv.fill_rect(x + 2, y + 88, w - 4, 52, RED)
@@ -823,9 +860,11 @@ def build():
         # source (y+174: ink bottom 425, border rows 430-431 -> 4px margin)
         draw_text(cv, x + 8, y + 174, hero['source'], F(SANS, 10), GREY)
 
-    # ---- 10 small panels, 2 rows of 5 (y 436 / 562, h 120; v3.2: art
-    # 30->20, decks extended to 2 lines, legend fits below row 2;
-    # v3.3: headline 15->16pt, deck 11->12pt for 300px legibility) ----
+    # ---- 10 small panels, 2 rows of 5 (y 436 / 562, h 120; v3.11: art
+    # 20 -> 28px (was "too thin" in R10/R11), kicker/headline/deck/
+    # source re-spaced to fit: kicker y+30, headline y+43 pitch 18,
+    # deck y+80 pitch 13, source y+108; veracity is a full-word pill
+    # inside the art strip, not a one-letter chip) ----
     pw, gap = 196, 7
     for row in range(2):
         for col_i in range(5):
@@ -833,40 +872,42 @@ def build():
             x = 8 + col_i * (pw + gap)
             y = 436 + row * 126
             cv.rect(x, y, pw, 120, NAVY, 1)
-            SCENES[p['scene']](cv, x + 1, y + 1, pw - 2, 20)
-            draw_chip(cv, x + pw - 22, y + 2, p['tag'])
-            draw_text(cv, x + 6, y + 23, '%s \u2022 %s' % (p['num'], p['city']),
+            SCENES[p['scene']](cv, x + 1, y + 1, pw - 2, 28)
+            draw_chip(cv, x + pw - 6, y + 5, p['tag'])
+            draw_text(cv, x + 6, y + 30, '%s \u2022 %s' % (p['num'], p['city']),
                       F(SANS_B, 12), NAVY)
             hlines = wrap_text(title_case(p['headline']), F(SANS_B, 16), pw - 12)
             assert len(hlines) <= 2, ('headline', p['headline'], hlines)
             for j, ln in enumerate(hlines[:2]):
-                draw_text(cv, x + 6, y + 39 + j * 19, ln, F(SANS_B, 16), INK)
+                draw_text(cv, x + 6, y + 43 + j * 18, ln, F(SANS_B, 16), INK)
             dlines = wrap_text(sentence_case(p['deck']), F(SANS, 12), pw - 12)
             assert len(dlines) <= 2, ('deck', p['deck'], dlines)
             for j, ln in enumerate(dlines[:2]):
-                draw_text(cv, x + 6, y + 76 + j * 14, ln, F(SANS, 12), INK)
-            # source (y+104: ink bottom ~115, border row 119 -> 4px margin)
-            draw_text(cv, x + 6, y + 104, p['source'], F(SANS, 10), GREY)
+                draw_text(cv, x + 6, y + 80 + j * 13, ln, F(SANS, 12), INK)
+            # source (y+108: ink bottom ~116, border row 119 -> 3px margin)
+            draw_text(cv, x + 6, y + 108, p['source'], F(SANS, 10), GREY)
 
     # ---- veracity legend 686 + map + ALSO ON 684..950 ----
     cv.fill_rect(0, 684, W, 266, CREAM)
-    # v3.9: legend letters are now mini chips (15x15, 10pt bold) + 11pt
-    # text (was 10pt bare letters, unreadable at thumbnail like the chips)
+    # v3.11: legend letters are now 22x22 chips (14pt bold) + 18pt
+    # bold text (was 15x15 + 11pt - unreadable at thumbnail like the
+    # chips). Total width 756px, centred. Titles move to y=708 to
+    # clear the taller legend; ALSO ON rows start y=724.
     leg = [("C", GREEN, " = CONFIRMED  \u2022  "),
            ("O", BLUE, " = OFFICIALS  \u2022  "),
            ("R", AMBER, " = REPORTED  \u2022  "),
            ("F", PURPLE, " = FORECAST")]
-    lf = F(SANS_B, 11)
-    leg_w = sum(17 + text_w(t, lf) for _, _, t in leg)
+    lf = F(SANS_B, 18)
+    leg_w = sum(24 + text_w(t, lf) for _, _, t in leg)
     lx = (W - leg_w) / 2
     for letter, col, txt in leg:
-        cv.fill_rect(lx, 686, 15, 15, col)
-        cv.rect(lx, 686, 15, 15, WHITE, 1)
-        draw_text_c(cv, lx + 7.5, 686 + 7.5, letter, F(SANS_B, 10), WHITE)
-        draw_text(cv, lx + 17, 686, txt, lf, NAVY)
-        lx += 17 + text_w(txt, lf)
-    draw_text(cv, 16, 703, 'WHERE IT HAPPENED', F(SANS_B, 13), NAVY)
-    draw_text(cv, 438, 703, 'ALSO ON - 14 TO 34', F(SANS_B, 13), NAVY)
+        cv.fill_rect(lx, 684, 22, 22, col)
+        cv.rect(lx, 684, 22, 22, WHITE, 1)
+        draw_text_c(cv, lx + 11, 684 + 11, letter, F(SANS_B, 14), WHITE)
+        draw_text(cv, lx + 24, 684, txt, lf, NAVY)
+        lx += 24 + text_w(txt, lf)
+    draw_text(cv, 16, 708, 'WHERE IT HAPPENED', F(SANS_B, 13), NAVY)
+    draw_text(cv, 438, 708, 'ALSO ON - 14 TO 34', F(SANS_B, 13), NAVY)
     # map box
     mx0, my0, mx1, my1 = 8, 727, 430, 940
     cv.fill_rect(mx0, my0, mx1 - mx0, my1 - my0, SEA)
@@ -901,7 +942,10 @@ def build():
         cv.circle(int(px), int(py), 9, WHITE, fill=False)
         draw_text_c(cv, int(px), int(py), str(num), F(SANS_B, 11), WHITE)
 
-    # ALSO ON two columns x 11 rows, one line per item (v3.2: 10.5pt)
+    # ALSO ON two columns x 11 rows, one line per item (v3.11: 11pt,
+    # was 10.5pt; 6 longest items shortened to fit the 284px column -
+    # facts kept, only wording trimmed: "in Benghazi, Libya" ->
+    # "Benghazi Libya", "Secret Police Founder" -> "Cheka Founder")
     col_xs = [438, 732]
     col_ws = [284, 284]
     for idx, item in enumerate(ALSO_ON):
@@ -909,11 +953,11 @@ def build():
         ci = idx // 11
         ri = idx % 11
         cx = col_xs[ci]
-        cy = 719 + ri * 21
+        cy = 724 + ri * 21
         full = '%d %s' % (num, title_case(item))
-        lines = wrap_text(full, F(SANS, 10.5), col_ws[ci])
+        lines = wrap_text(full, F(SANS, 11), col_ws[ci])
         assert len(lines) == 1, ('also-on', full, lines)
-        draw_text(cv, cx, cy, lines[0], F(SANS, 10.5), INK)
+        draw_text(cv, cx, cy, lines[0], F(SANS, 11), INK)
 
     # ---- DATE CHECK 950..998: black text on pale peach, red border ----
     cv.fill_rect(8, 950, W - 16, 48, DC_BG)
@@ -932,13 +976,15 @@ def build():
         assert fnt.getlength(ln) <= 992, ('date-check', ln)
         draw_text(cv, 16, 953 + j * 13, ln, fnt, INK)
 
-    # ---- footer 998..1024 ----
-    draw_text(cv, W / 2, 1000,
+    # ---- footer 998..1024 (v3.11: 10 -> 11pt; lines moved up 1-2px:
+    # at 11pt the Sources line's bbox bottom was 1025, 1px past the
+    # canvas edge) ----
+    draw_text(cv, W / 2, 999,
               'One day, 34 stories \u2014 Tuesday 24 November 2026.',
-              F(SANS, 10), INK, align='c')
-    draw_text(cv, W / 2, 1012,
+              F(SANS, 11), INK, align='c')
+    draw_text(cv, W / 2, 1010,
               'Sources: Reuters, Euronews, Fox News, BBC, CNN, Guardian, Bloomberg, KCNA, Space.com, US Treasury \u2022 Original drawings.',
-              F(SANS, 10), GREY, align='c')
+              F(SANS, 11), GREY, align='c')
     return cv
 
 
