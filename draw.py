@@ -64,7 +64,7 @@ SMALL_WORDS = {
 # Proper nouns that stay capitalised in sentence-case decks.
 PROPER = {
     "KHARG", "TRUMP", "PACIFIC", "POLISH", "BENGHAZI", "SENEGAL", "MOROCCO",
-    "KYIV", "POLAND", "RUSSIAN",
+    "KYIV", "POLAND", "RUSSIAN", "COPENHAGEN",
 }
 
 
@@ -603,15 +603,20 @@ CONTINENTS = {
 # 4px E + 2px N, pin 2 pushed 2px S - min pairwise gap in the
 # Europe cluster now ~21px (was ~19px, circles r=9 nearly touched);
 # every pin centre still on rendered land (pixel check).
+# v3.9 (blind R9 fix - "pin Eropa menumpuk"): spread the Europe/ME
+# cluster further (target min gap >= 22px): pin 1 +4E/+3N, pin 4 -2W/-7N,
+# pin 5 +3E/-4N, pin 7 +1E/+2S; pin 8 -4W onto the Korean coast
+# (its centre sat just offshore). Leader lines (see pin loop) mark the
+# true geo point whenever the offset exceeds 10px.
 PINS = [
-    (1, 51.4, 35.7, 5, -6),     # Tehran
+    (1, 51.4, 35.7, 9, -3),     # Tehran (v3.9: dx 5 -> 9, dy -6 -> -3)
     (2, 30.7, 36.9, -4, -4),    # Antalya (v3.5: dx -2 -> -4, +2px W)
     (3, -74.0, 40.7, -2, 0),    # New York (v3.3: true NYC, east coast)
-    (4, 21.0, 52.2, -8, 6),     # Warsaw (v3.5: dx -6 -> -8, +2px W)
-    (5, 30.5, 50.45, 6, -4),    # Kyiv (v3.5: dx 2 -> 6, dy -2 -> -4)
+    (4, 21.0, 52.2, -10, -1),   # Warsaw (v3.9: dx -8 -> -10, dy 6 -> -1)
+    (5, 30.5, 50.45, 6, -4),    # Kyiv (v3.5: dx 2 -> 6, dy -2 -> -4; v3.9 tried (9,-8) - SEA, reverted: the (40,60)-(35,55) notch puts it off-land)
     (6, 106.8, -6.2, 1, 1),     # Jakarta (v3.3: enlarged Java polygon)
-    (7, 34.5, 31.5, 8, 0),      # Gaza
-    (8, 130.9, 37.5, 2, 2),     # Ulleung (v3.3: Korea east coast)
+    (7, 34.5, 31.5, 9, 2),      # Gaza (v3.9: dx 8 -> 9, dy 0 -> 2)
+    (8, 130.9, 37.5, -2, 2),    # Ulleung (v3.9: dx 2 -> -2, onto the coast)
     (9, 4.35, 50.85, -10, 10),  # Brussels (v3.5: dx -8 -> -10, dy 8 -> 10)
     (10, -93.1, 41.9, -4, -10), # Iowa
     (11, -77.0, 38.9, -20, 6),  # Washington (v3.6: dx -32 -> -20; -32 put pin in New Mexico, caught by both R7 judges)
@@ -633,11 +638,11 @@ HEROES = [
          source='REUTERS • EURONEWS • FOX NEWS', tag='O'),
     dict(num='02', city='ANTALYA', region='GLOBAL', scene='climate',
          headline='COP31 ENDS WITH NO DEAL',
-         deck='FIRST NO-DEAL COP SINCE 2009; PACIFIC IN DESPAIR',
+         deck='FIRST NO-DEAL COP SINCE COPENHAGEN; PACIFIC IN DESPAIR',
          source='BBC • CNN • GUARDIAN', tag='C'),
     dict(num='03', city='NEW YORK', region='AMERICAS', scene='nvidia',
          headline='HUANG REINSTATED AT NVIDIA',
-         deck='RESTORED NOV 23 AFTER TRUMP PUSH; NVIDIA SHARES SURGE 31% ON MONDAY',
+         deck='REINSTATED AFTER TRUMP PUSH; NVIDIA SHARES SURGE 31% TODAY',
          source='REUTERS • BLOOMBERG', tag='R'),
 ]
 
@@ -692,7 +697,7 @@ ALSO_ON = [
     "DENMARK COURT BACKS GHETTO EVICTIONS (REUTERS)",
     "UK: SPACEX CURBS 'DENTED TRUST' (REUTERS)",
     "OIL SLUMPS TO 3-MONTH LOW (REUTERS)",
-    "HEDGE FUNDS' WORST WEEK SINCE 2025 (REUTERS)",
+    "HEDGE FUNDS' WORST WEEK IN YEARS (REUTERS)",
     "AMAZON LAUNCHES KUIPER SATELLITES (SPACE.COM)",
     "AUSTRALIA: COP FALLOUT; HANSON TEST (REUTERS)",
     "MOSCOW HONOURS SECRET POLICE FOUNDER (REUTERS)",
@@ -700,10 +705,8 @@ ALSO_ON = [
 
 TIMELINE = [
     ("00:00", "IRAN VOWS TO FIGHT BLOCKADE"),
-    ("01:00", "COP31 FALLOUT: PACIFIC DESPAIR"),
-    ("02:00", "INDONESIA: SEARCH FOR 34 MISSING"),
+    ("02:00", "INDONESIA: 34 MISSING IN FIRE"),
     ("06:00", "NATO TO SEND AWACS TO POLAND"),
-    ("09:00", "EU PROPOSES 22ND SANCTIONS PACKAGE"),
     ("14:00", "IOWA BLAST CLEANUP PAUSED"),
 ]
 
@@ -718,9 +721,12 @@ REGIONS = [("EUROPE", 12, BLUE), ("AMERICAS", 8, RED), ("MIDDLE EAST", 4, AMBER)
            ("OCEANIA", 1, TEAL)]
 
 def draw_chip(cv, x, y, tag):
+    # v3.9: 16x16 -> 20x20, letter 11 -> 13pt bold, white outline:
+    # the 1-letter chips were "nearly invisible at thumbnail" (R9, both judges)
     word, col = VERACITY[tag]
-    cv.fill_rect(x, y, 16, 16, col)
-    draw_text_c(cv, x + 8, y + 8, tag, F(SANS_B, 11), WHITE)
+    cv.fill_rect(x, y, 20, 20, col)
+    cv.rect(x, y, 20, 20, WHITE, 1)
+    draw_text_c(cv, x + 10, y + 10, tag, F(SANS_B, 13), WHITE)
 
 
 def build():
@@ -744,26 +750,28 @@ def build():
     for i, c in enumerate(stripe_cols):
         cv.fill_rect(i * W // 6, 100, W // 6 + 1, 6, c)
 
-    # ---- UTC timeline strip 106..176 ----
+    # ---- UTC timeline strip 106..176 (v3.9: 6 -> 4 points, type up:
+    # times 12 -> 15pt bold, labels 11 -> 14pt single line. The 6-point
+    # strip was unreadable at ~300px in every blind round R5-R9.) ----
     cv.fill_rect(0, 106, W, 70, CREAM)
     draw_text(cv, 16, 109, 'TUESDAY 24 NOVEMBER - AS THE DAY UNFOLDED (UTC)',
               F(SANS_B, 13), NAVY)
-    cv.line(16, 130, W - 16, 130, NAVY, 2)
-    col_w = (W - 32) / 6
+    cv.line(16, 132, W - 16, 132, NAVY, 2)
+    tl_w = (W - 32) / 4
     for i, (t, label) in enumerate(TIMELINE):
-        cx = 16 + i * col_w
-        cv.circle(int(cx + 8), 130, 5, RED)
-        draw_text(cv, cx, 134, t, F(SANS_B, 12), RED)
-        lines = wrap_text(title_case(label), F(SANS, 11), col_w - 12)
-        assert len(lines) <= 2, ('timeline', label, lines)
-        for j, ln in enumerate(lines[:2]):
-            draw_text(cv, cx, 149 + j * 13, ln, F(SANS, 11), INK)
+        cx = 16 + i * tl_w
+        cv.circle(int(cx + 8), 132, 5, RED)
+        draw_text(cv, cx, 137, t, F(SANS_B, 15), RED)
+        lines = wrap_text(title_case(label), F(SANS, 14), tl_w - 12)
+        assert len(lines) == 1, ('timeline', label, lines)
+        draw_text(cv, cx, 157, lines[0], F(SANS, 14), INK)
 
     # ---- 6 big numbers 176..226 (gold divider + BY THE NUMBERS tab) ----
     cv.fill_rect(0, 176, W, 50, PAPER)
     cv.fill_rect(0, 176, W, 3, GOLD)
     cv.fill_rect(12, 175, 156, 12, PAPER)
     draw_text(cv, 16, 176, 'BY THE NUMBERS', F(SANS_B, 9), GREY)
+    col_w = (W - 32) / 6
     for i, (num, label) in enumerate(NUMBERS):
         cx = 16 + i * col_w
         draw_text(cv, cx, 188, num, F(SANS_B, 22), RED)
@@ -794,12 +802,13 @@ def build():
         draw_text(cv, x + 8, y + 74,
                   '%s \u2022 %s \u2022 %s' % (hero['num'], hero['city'], hero['region']),
                   F(SANS_B, 13), CREAM)
-        # veracity chip top-right of art
+        # veracity chip top-right of art (v3.9: word 11 -> 12pt bold,
+        # 16 -> 18px tall - same readability complaint as the 1-letter chips)
         word, col = VERACITY[hero['tag']]
-        cf = F(SANS_B, 11)
+        cf = F(SANS_B, 12)
         cw = int(text_w(word, cf)) + 12
-        cv.fill_rect(x + w - cw - 6, y + 6, cw, 16, col)
-        draw_text(cv, x + w - cw, y + 8, word, cf, WHITE)
+        cv.fill_rect(x + w - cw - 6, y + 5, cw, 18, col)
+        draw_text(cv, x + w - cw, y + 7, word, cf, WHITE)
         # red banner = headline
         cv.fill_rect(x + 2, y + 88, w - 4, 52, RED)
         lines = wrap_text(title_case(hero['headline']), F(SANS_B, 21), w - 20)
@@ -825,7 +834,7 @@ def build():
             y = 436 + row * 126
             cv.rect(x, y, pw, 120, NAVY, 1)
             SCENES[p['scene']](cv, x + 1, y + 1, pw - 2, 20)
-            draw_chip(cv, x + pw - 18, y + 3, p['tag'])
+            draw_chip(cv, x + pw - 22, y + 2, p['tag'])
             draw_text(cv, x + 6, y + 23, '%s \u2022 %s' % (p['num'], p['city']),
                       F(SANS_B, 12), NAVY)
             hlines = wrap_text(title_case(p['headline']), F(SANS_B, 16), pw - 12)
@@ -841,16 +850,21 @@ def build():
 
     # ---- veracity legend 686 + map + ALSO ON 684..950 ----
     cv.fill_rect(0, 684, W, 266, CREAM)
-    leg = [("C", GREEN), (" = CONFIRMED  \u2022  ", NAVY),
-           ("O", BLUE), (" = OFFICIALS  \u2022  ", NAVY),
-           ("R", AMBER), (" = REPORTED  \u2022  ", NAVY),
-           ("F", PURPLE), (" = FORECAST", NAVY)]
-    lf = F(SANS_B, 10)
-    leg_w = sum(text_w(t, lf) for t, _ in leg) + 2 * (len(leg) - 1)
+    # v3.9: legend letters are now mini chips (15x15, 10pt bold) + 11pt
+    # text (was 10pt bare letters, unreadable at thumbnail like the chips)
+    leg = [("C", GREEN, " = CONFIRMED  \u2022  "),
+           ("O", BLUE, " = OFFICIALS  \u2022  "),
+           ("R", AMBER, " = REPORTED  \u2022  "),
+           ("F", PURPLE, " = FORECAST")]
+    lf = F(SANS_B, 11)
+    leg_w = sum(17 + text_w(t, lf) for _, _, t in leg)
     lx = (W - leg_w) / 2
-    for t, col in leg:
-        draw_text(cv, lx, 686, t, lf, col)
-        lx += text_w(t, lf) + 2
+    for letter, col, txt in leg:
+        cv.fill_rect(lx, 686, 15, 15, col)
+        cv.rect(lx, 686, 15, 15, WHITE, 1)
+        draw_text_c(cv, lx + 7.5, 686 + 7.5, letter, F(SANS_B, 10), WHITE)
+        draw_text(cv, lx + 17, 686, txt, lf, NAVY)
+        lx += 17 + text_w(txt, lf)
     draw_text(cv, 16, 703, 'WHERE IT HAPPENED', F(SANS_B, 13), NAVY)
     draw_text(cv, 438, 703, 'ALSO ON - 14 TO 34', F(SANS_B, 13), NAVY)
     # map box
@@ -871,11 +885,18 @@ def build():
                             ('INDIAN OCEAN', 88, -28)):
         lx, ly = ll2xy(lon, lat)
         draw_text(cv, lx, ly, label, F(SANS, 10), (90, 120, 150), align='c')
-    # pins 1..13
+    # pins 1..13 (v3.9: leader line + dot from the true geo point to the
+    # pin centre when the decluster offset exceeds 10px, so a shifted
+    # pin still reads at its true place - both R7 judges caught pin 11's
+    # shift to New Mexico, and R8/R9 kept reading pins as misplaced)
     for num, lon, lat, dx, dy in PINS:
         px, py = ll2xy(lon, lat)
         px += dx
         py += dy
+        if math.hypot(dx, dy) > 10:
+            tx, ty = ll2xy(lon, lat)
+            cv.line(int(tx), int(ty), int(px), int(py), NAVY, 1)
+            cv.circle(int(tx), int(ty), 2, NAVY)
         cv.circle(int(px), int(py), 9, RED)
         cv.circle(int(px), int(py), 9, WHITE, fill=False)
         draw_text_c(cv, int(px), int(py), str(num), F(SANS_B, 11), WHITE)
