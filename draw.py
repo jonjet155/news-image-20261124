@@ -642,7 +642,7 @@ HEROES = [
          source='BBC • CNN • GUARDIAN', tag='C'),
     dict(num='03', city='NEW YORK', region='AMERICAS', scene='nvidia',
          headline='HUANG REINSTATED AT NVIDIA',
-         deck='REINSTATED AFTER TRUMP PUSH; NVIDIA SHARES SURGE 31% TODAY',
+         deck='REINSTATED AFTER TRUMP PUSH; NVIDIA SHARES SURGE',
          source='REUTERS • BLOOMBERG', tag='R'),
 ]
 
